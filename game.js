@@ -1,55 +1,8 @@
-// ── Tile type IDs ──
-const H   = 1; // Horizontal
-const V   = 2; // Vertical
-const TL  = 3; // Curve Top-Left
-const TR  = 4; // Curve Top-Right
-const BR  = 5; // Curve Bottom-Right
-const BL  = 6; // Curve Bottom-Left
-const X   = 7; // Cross
-const S   = 8; // S-curve
-const Z   = 9; // Z-curve
-const __  = 0; // Empty
-
-// ── Tile type definitions ──
-// Each type maps to an array of [edgeA, edgeB] connections.
-// Edges: "top", "bottom", "left", "right"
-const TILE_TYPES = {
-    1: { name: "Horizontal", connections: [["left", "right"]] },
-    2: { name: "Vertical",   connections: [["top", "bottom"]] },
-    3: { name: "Curve TL",   connections: [["top", "left"]] },
-    4: { name: "Curve TR",   connections: [["top", "right"]] },
-    5: { name: "Curve BR",   connections: [["bottom", "right"]] },
-    6: { name: "Curve BL",   connections: [["bottom", "left"]] },
-    7: { name: "Cross",      connections: [["top", "bottom"], ["left", "right"]] },
-    8: { name: "S-curve",    connections: [["top", "left"], ["bottom", "right"]] },
-    9: { name: "Z-curve",    connections: [["top", "right"], ["bottom", "left"]] },
-};
-
-// ── Presets ──
-const PRESETS = [
-    {
-        name: "Level 1",
-        grid: [
-            [S,  X,  X, Z],
-            [ X, S, Z,  X],
-            [ X, Z, __, X],
-            [Z,  X,  X, S],
-        ],
-        empty: { row: 2, col: 2 },
-        car: { row: 0, col: 0, entering: "bottom" },
-    },
-    {
-        name: "Level 2",
-        grid: [
-            [BR,  H, BL,  V],
-            [ V, BL,  V,  V],
-            [ V, __,  TR, TL],
-            [TR,  H,  H, TL],
-        ],
-        empty: { row: 2, col: 1 },
-        car: { row: 0, col: 3, entering: "top" },
-    },
-];
+import {
+    H, V, TL, TR, BR, BL, X, S, Z, __,
+    TILE_TYPES, OPPOSITE, EDGE_DELTA, GRID, PRESETS,
+    getExitEdge, createBoard, checkWin, getNextCarState,
+} from "./logic.js";
 
 let currentPreset = PRESETS[0];
 
@@ -57,7 +10,6 @@ let currentPreset = PRESETS[0];
 let board = [];      // 4x4 array; null = empty
 let emptyPos = null; // { row, col }
 let canvas, ctx;
-const GRID = 4;
 let tileSize;
 
 // ── Slide animation state ──
@@ -70,31 +22,9 @@ let carRunning = false;
 let lastCarTime = 0;
 let animFrameId = null;
 
-// Opposite edges for entering the next tile
-const OPPOSITE = { top: "bottom", bottom: "top", left: "right", right: "left" };
-
-// Direction offsets: which adjacent cell does an exit edge lead to?
-const EDGE_DELTA = {
-    top:    { dr: -1, dc: 0 },
-    bottom: { dr: 1,  dc: 0 },
-    left:   { dr: 0,  dc: -1 },
-    right:  { dr: 0,  dc: 1 },
-};
-
 function getSecondsPerTile() {
-    // Slider value 1 = slow (5s), 10 = fast (0.5s)
     const val = parseInt(document.getElementById("speed-slider").value);
     return 0.5 + (10 - val) * 0.5;
-}
-
-// Given a tile type and the edge the car entered from, return the exit edge
-function getExitEdge(tileType, enteringEdge) {
-    const conns = TILE_TYPES[tileType].connections;
-    for (const [a, b] of conns) {
-        if (a === enteringEdge) return b;
-        if (b === enteringEdge) return a;
-    }
-    return null; // no matching connection — crash
 }
 
 // ── Edge midpoints (relative to tile origin) ──
@@ -149,16 +79,13 @@ function drawTile(tile, row, col) {
     const ox = col * tileSize;
     const oy = row * tileSize;
 
-    // Tile background
     ctx.fillStyle = tile.visited ? "#1e3a2f" : "#2a4a7a";
     ctx.fillRect(ox, oy, tileSize, tileSize);
 
-    // Border
     ctx.strokeStyle = "#0f3460";
     ctx.lineWidth = 1;
     ctx.strokeRect(ox + 0.5, oy + 0.5, tileSize - 1, tileSize - 1);
 
-    // Road segments
     const tileDef = TILE_TYPES[tile.type];
     for (const [a, b] of tileDef.connections) {
         drawRoadSegment(ctx, ox, oy, a, b);
@@ -168,25 +95,21 @@ function drawTile(tile, row, col) {
 function drawBoard() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw empty space (and the trail behind a sliding tile)
     ctx.fillStyle = "#0a0a1a";
     ctx.fillRect(emptyPos.col * tileSize, emptyPos.row * tileSize, tileSize, tileSize);
     if (sliding) {
         ctx.fillRect(sliding.fromCol * tileSize, sliding.fromRow * tileSize, tileSize, tileSize);
     }
 
-    // Draw tiles
     for (let r = 0; r < GRID; r++) {
         for (let c = 0; c < GRID; c++) {
             if (board[r][c]) {
-                // Skip the sliding tile here; it's drawn separately
                 if (sliding && r === sliding.fromRow && c === sliding.fromCol) continue;
                 drawTile(board[r][c], r, c);
             }
         }
     }
 
-    // Draw sliding tile at interpolated position
     if (sliding) {
         const t = sliding.progress;
         const drawRow = sliding.fromRow + (sliding.toRow - sliding.fromRow) * t;
@@ -194,7 +117,6 @@ function drawBoard() {
         drawTile(sliding.tile, drawRow, drawCol);
     }
 
-    // Draw car (offset if on a sliding tile)
     if (car) {
         let carOffsetX = 0, carOffsetY = 0;
         if (sliding && car.row === sliding.fromRow && car.col === sliding.fromCol) {
@@ -206,8 +128,6 @@ function drawBoard() {
     }
 }
 
-// ── Car position along a road segment ──
-// Returns {x, y} in canvas coordinates for the car at given progress (0..1)
 function getCarPosition(row, col, enteringEdge, progress) {
     const tileType = board[row] && board[row][col] ? board[row][col].type : null;
     if (!tileType) return null;
@@ -220,7 +140,6 @@ function getCarPosition(row, col, enteringEdge, progress) {
     const half = tileSize / 2;
     const edges = [enteringEdge, exitEdge].sort().join(",");
 
-    // For straight segments, interpolate linearly
     if (edges === "left,right") {
         const startX = enteringEdge === "left" ? 0 : tileSize;
         const endX = enteringEdge === "left" ? tileSize : 0;
@@ -232,24 +151,23 @@ function getCarPosition(row, col, enteringEdge, progress) {
         return { x: ox + half, y: oy + startY + (endY - startY) * progress };
     }
 
-    // For curves, interpolate along the arc
     let cx, cy, startAngle, endAngle;
     if (edges === "left,top") {
         cx = ox; cy = oy;
         if (enteringEdge === "top") { startAngle = 0; endAngle = Math.PI / 2; }
-        else { startAngle = Math.PI / 2; endAngle = 0; } // entering left
+        else { startAngle = Math.PI / 2; endAngle = 0; }
     } else if (edges === "right,top") {
         cx = ox + tileSize; cy = oy;
         if (enteringEdge === "top") { startAngle = Math.PI; endAngle = Math.PI / 2; }
-        else { startAngle = Math.PI / 2; endAngle = Math.PI; } // entering right
+        else { startAngle = Math.PI / 2; endAngle = Math.PI; }
     } else if (edges === "bottom,right") {
         cx = ox + tileSize; cy = oy + tileSize;
         if (enteringEdge === "bottom") { startAngle = Math.PI; endAngle = 1.5 * Math.PI; }
-        else { startAngle = 1.5 * Math.PI; endAngle = Math.PI; } // entering right
+        else { startAngle = 1.5 * Math.PI; endAngle = Math.PI; }
     } else if (edges === "bottom,left") {
         cx = ox; cy = oy + tileSize;
         if (enteringEdge === "bottom") { startAngle = 2 * Math.PI; endAngle = 1.5 * Math.PI; }
-        else { startAngle = 1.5 * Math.PI; endAngle = 2 * Math.PI; } // entering left
+        else { startAngle = 1.5 * Math.PI; endAngle = 2 * Math.PI; }
     }
 
     const angle = startAngle + (endAngle - startAngle) * progress;
@@ -280,12 +198,10 @@ function animateSlide(timestamp) {
     drawBoard();
 
     if (sliding.progress >= 1) {
-        // Finalize: place tile in destination
         board[sliding.toRow][sliding.toCol] = sliding.tile;
         board[sliding.fromRow][sliding.fromCol] = null;
         emptyPos = { row: sliding.fromRow, col: sliding.fromCol };
 
-        // Move car with its tile
         if (car && car.row === sliding.fromRow && car.col === sliding.fromCol) {
             car.row = sliding.toRow;
             car.col = sliding.toCol;
@@ -311,7 +227,7 @@ function updateCar(timestamp) {
     if (!carRunning) return;
 
     if (lastCarTime === 0) lastCarTime = timestamp;
-    const dt = (timestamp - lastCarTime) / 1000; // seconds
+    const dt = (timestamp - lastCarTime) / 1000;
     lastCarTime = timestamp;
 
     const spt = getSecondsPerTile();
@@ -319,46 +235,19 @@ function updateCar(timestamp) {
 
     if (car.progress >= 1.0) {
         car.progress = 0;
-        // Determine exit edge and move to next tile
-        const tile = board[car.row][car.col];
-        const exitEdge = getExitEdge(tile.type, car.entering);
 
-        if (!exitEdge) {
+        const next = getNextCarState(board, car);
+        if (!next) {
             crash();
             return;
         }
 
-        const delta = EDGE_DELTA[exitEdge];
-        const newRow = car.row + delta.dr;
-        const newCol = car.col + delta.dc;
+        car.row = next.row;
+        car.col = next.col;
+        car.entering = next.entering;
+        board[car.row][car.col].visited = true;
 
-        // Check bounds
-        if (newRow < 0 || newRow >= GRID || newCol < 0 || newCol >= GRID) {
-            crash();
-            return;
-        }
-
-        // Check if next cell has a tile
-        const nextTile = board[newRow][newCol];
-        if (!nextTile) {
-            crash();
-            return;
-        }
-
-        // Check if next tile has a matching road at the connecting edge
-        const newEntering = OPPOSITE[exitEdge];
-        if (!getExitEdge(nextTile.type, newEntering)) {
-            crash();
-            return;
-        }
-
-        car.row = newRow;
-        car.col = newCol;
-        car.entering = newEntering;
-        nextTile.visited = true;
-
-        // Check win: all 15 tiles visited
-        if (checkWin()) {
+        if (checkWin(board)) {
             carRunning = false;
             drawBoard();
             document.getElementById("win-dialog").classList.remove("hidden");
@@ -370,30 +259,11 @@ function updateCar(timestamp) {
     animFrameId = requestAnimationFrame(updateCar);
 }
 
-function checkWin() {
-    for (let r = 0; r < GRID; r++) {
-        for (let c = 0; c < GRID; c++) {
-            if (board[r][c] && !board[r][c].visited) return false;
-        }
-    }
-    return true;
-}
-
 // ── Board setup ──
 function initBoard() {
-    board = [];
-    for (let r = 0; r < GRID; r++) {
-        board[r] = [];
-        for (let c = 0; c < GRID; c++) {
-            const type = currentPreset.grid[r][c];
-            if (type === 0) {
-                board[r][c] = null;
-            } else {
-                board[r][c] = { type, row: r, col: c, visited: false };
-            }
-        }
-    }
-    emptyPos = { ...currentPreset.empty };
+    const result = createBoard(currentPreset);
+    board = result.board;
+    emptyPos = result.emptyPos;
 }
 
 // ── Canvas sizing ──
@@ -413,7 +283,6 @@ function startGame() {
     sizeCanvas();
     initBoard();
 
-    // Initialize car
     car = {
         row: currentPreset.car.row,
         col: currentPreset.car.col,
@@ -425,7 +294,6 @@ function startGame() {
     drawBoard();
     canvas.addEventListener("click", handleCanvasClick);
 
-    // Start car animation
     carRunning = true;
     lastCarTime = 0;
     animFrameId = requestAnimationFrame(updateCar);
@@ -454,7 +322,6 @@ function handleCanvasClick(e) {
     const col = Math.floor((e.clientX - rect.left) / tileSize);
     const row = Math.floor((e.clientY - rect.top) / tileSize);
 
-    // Check if clicked tile is adjacent to empty space
     const dr = Math.abs(row - emptyPos.row);
     const dc = Math.abs(col - emptyPos.col);
     if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
@@ -464,13 +331,12 @@ function handleCanvasClick(e) {
 
 function handleKeyDown(e) {
     if (!canvas) return;
-    // Arrow key moves the tile that is opposite the arrow relative to empty space
     let row = emptyPos.row, col = emptyPos.col;
     switch (e.key) {
-        case "ArrowUp":    row += 1; break; // tile below empty moves up
-        case "ArrowDown":  row -= 1; break; // tile above empty moves down
-        case "ArrowLeft":  col += 1; break; // tile right of empty moves left
-        case "ArrowRight": col -= 1; break; // tile left of empty moves right
+        case "ArrowUp":    row += 1; break;
+        case "ArrowDown":  row -= 1; break;
+        case "ArrowLeft":  col += 1; break;
+        case "ArrowRight": col -= 1; break;
         default: return;
     }
     e.preventDefault();
@@ -507,7 +373,6 @@ document.getElementById("home-btn").addEventListener("click", () => {
 
 document.getElementById("reverse-btn").addEventListener("click", () => {
     document.getElementById("crash-dialog").classList.add("hidden");
-    // Reverse: swap entering edge to the exit edge, so car goes back the way it came
     const tile = board[car.row][car.col];
     const exitEdge = getExitEdge(tile.type, car.entering);
     if (exitEdge) {
