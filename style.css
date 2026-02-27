@@ -28,9 +28,16 @@ body {
     color: #e94560;
 }
 
-#play-btn {
-    font-size: 1.5rem;
-    padding: 0.8rem 3rem;
+#level-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.level-btn {
+    font-size: 1.3rem;
+    padding: 0.8rem 2rem;
     background: #e94560;
     color: #fff;
     border: none;
@@ -38,7 +45,7 @@ body {
     cursor: pointer;
 }
 
-#play-btn:hover {
+.level-btn:hover {
     background: #c73650;
 }
 

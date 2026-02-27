@@ -25,17 +25,33 @@ const TILE_TYPES = {
     9: { name: "Z-curve",    connections: [["top", "right"], ["bottom", "left"]] },
 };
 
-// ── Preset ──
-const PRESET = {
-    grid: [
-        [BR,  H,  H, BL],
-        [ V, BR, BL,  V],
-        [ V, TR, __, V],
-        [TR,  H,  H, TL],
-    ],
-    empty: { row: 2, col: 2 },
-    car: { row: 0, col: 0, entering: "bottom" },
-};
+// ── Presets ──
+const PRESETS = [
+    {
+        name: "Level 1",
+        grid: [
+            [S,  X,  X, Z],
+            [ X, S, Z,  X],
+            [ X, Z, __, X],
+            [Z,  X,  X, S],
+        ],
+        empty: { row: 2, col: 2 },
+        car: { row: 0, col: 0, entering: "bottom" },
+    },
+    {
+        name: "Level 2",
+        grid: [
+            [BR,  H, BL,  V],
+            [ V, BL,  V,  V],
+            [ V, __,  TR, TL],
+            [TR,  H,  H, TL],
+        ],
+        empty: { row: 2, col: 1 },
+        car: { row: 0, col: 3, entering: "top" },
+    },
+];
+
+let currentPreset = PRESETS[0];
 
 // ── Game state ──
 let board = [];      // 4x4 array; null = empty
@@ -45,7 +61,7 @@ const GRID = 4;
 let tileSize;
 
 // ── Slide animation state ──
-const SLIDE_DURATION = 200; // ms
+const SLIDE_DURATION = 164; // ms
 let sliding = null; // { tile, fromRow, fromCol, toRow, toCol, startTime }
 
 // ── Car state ──
@@ -369,7 +385,7 @@ function initBoard() {
     for (let r = 0; r < GRID; r++) {
         board[r] = [];
         for (let c = 0; c < GRID; c++) {
-            const type = PRESET.grid[r][c];
+            const type = currentPreset.grid[r][c];
             if (type === 0) {
                 board[r][c] = null;
             } else {
@@ -377,7 +393,7 @@ function initBoard() {
             }
         }
     }
-    emptyPos = { ...PRESET.empty };
+    emptyPos = { ...currentPreset.empty };
 }
 
 // ── Canvas sizing ──
@@ -399,9 +415,9 @@ function startGame() {
 
     // Initialize car
     car = {
-        row: PRESET.car.row,
-        col: PRESET.car.col,
-        entering: PRESET.car.entering,
+        row: currentPreset.car.row,
+        col: currentPreset.car.col,
+        entering: currentPreset.car.entering,
         progress: 0,
     };
     board[car.row][car.col].visited = true;
@@ -503,8 +519,20 @@ document.getElementById("reverse-btn").addEventListener("click", () => {
     animFrameId = requestAnimationFrame(updateCar);
 });
 
+// ── Build level buttons ──
+const levelContainer = document.getElementById("level-buttons");
+PRESETS.forEach((preset, i) => {
+    const btn = document.createElement("button");
+    btn.textContent = preset.name;
+    btn.className = "level-btn";
+    btn.addEventListener("click", () => {
+        currentPreset = PRESETS[i];
+        startGame();
+    });
+    levelContainer.appendChild(btn);
+});
+
 // ── Event listeners ──
-document.getElementById("play-btn").addEventListener("click", startGame);
 window.addEventListener("keydown", handleKeyDown);
 
 window.addEventListener("resize", () => {
