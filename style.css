@@ -40,6 +40,16 @@ body {
     margin-bottom: 2rem;
 }
 
+.build-timestamp {
+    position: fixed;
+    bottom: 0.5rem;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.7rem;
+    color: #445;
+}
+
 #level-buttons {
     display: flex;
     gap: 1rem;
