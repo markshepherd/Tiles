@@ -354,6 +354,23 @@ body {
     font-size: 1.1rem;
 }
 
+#crash-dialog h2 {
+    animation: crashshake 2.5s ease-out;
+}
+
+@keyframes crashshake {
+    0%   { transform: scale(3) rotate(0deg); opacity: 0; }
+    15%  { transform: scale(1.15) rotate(-8deg); opacity: 1; }
+    22%  { transform: scale(1.1) rotate(7deg); }
+    30%  { transform: scale(1.05) rotate(-6deg); }
+    40%  { transform: scale(1.02) rotate(5deg); }
+    50%  { transform: scale(1.01) rotate(-4deg); }
+    60%  { transform: scale(1) rotate(3deg); }
+    70%  { transform: scale(1) rotate(-2deg); }
+    85%  { transform: scale(1) rotate(1deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
 #win-dialog h2 {
     color: #4ade80;
 }

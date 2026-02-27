@@ -349,8 +349,13 @@ function animateSlide(timestamp) {
 // ── Crash handling ──
 function crash() {
     carRunning = false;
+    elapsedBeforePause += Date.now() - gameStartTime;
     car.progress = Math.min(car.progress, 1.0);
     drawBoard();
+    const heading = document.querySelector("#crash-dialog h2");
+    heading.style.animation = "none";
+    heading.offsetHeight;
+    heading.style.animation = "";
     document.getElementById("crash-dialog").classList.remove("hidden");
 }
 
@@ -538,6 +543,7 @@ document.getElementById("reverse-btn").addEventListener("click", () => {
         car.entering = exitEdge;
     }
     car.progress = 0;
+    gameStartTime = Date.now();
     carRunning = true;
     lastCarTime = 0;
     animFrameId = requestAnimationFrame(updateCar);
@@ -546,6 +552,7 @@ document.getElementById("reverse-btn").addEventListener("click", () => {
 document.getElementById("retry-tile-btn").addEventListener("click", () => {
     document.getElementById("crash-dialog").classList.add("hidden");
     car.progress = 0;
+    gameStartTime = Date.now();
     carRunning = true;
     lastCarTime = 0;
     animFrameId = requestAnimationFrame(updateCar);
