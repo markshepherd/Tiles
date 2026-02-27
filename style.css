@@ -4,6 +4,10 @@
     box-sizing: border-box;
 }
 
+html {
+    overflow-x: hidden;
+}
+
 body {
     background: radial-gradient(ellipse at center, #1a2a4a, #101828 60%, #0a0e1a);
     color: #eee;
@@ -23,6 +27,9 @@ body {
     text-align: center;
     padding: 0 1rem;
     min-height: 100vh;
+    width: 100%;
+    max-width: 100vw;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -251,6 +258,9 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    width: 100%;
+    max-width: 100vw;
+    overflow: hidden;
 }
 
 .game-status {
