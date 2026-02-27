@@ -10,13 +10,17 @@
     <div id="home-screen">
         <h1>SlideCar</h1>
         <p class="tagline">Visit every tile.</p>
-        <p class="tagline instructions">Click to move tiles (or use arrows).</p>
+        <p class="tagline instructions">Click to move tiles.</p>
         <div id="level-buttons"></div>
-        <p class="build-timestamp">Build: 2026-02-27 11:59</p>
+        <p class="build-timestamp">Build: 2026-02-27 12:13</p>
     </div>
 
     <div id="game-screen" class="hidden">
-        <h2 id="game-title"></h2>
+        <div class="game-status">
+            <h2 id="game-title"></h2>
+            <span id="tile-counter">0 / 15</span>
+            <span id="game-clock">0:00</span>
+        </div>
         <canvas id="game-canvas"></canvas>
         <div class="game-controls">
             <div class="speed-control">

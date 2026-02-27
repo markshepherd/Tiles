@@ -16,6 +16,27 @@ let carRunning = false;
 let lastCarTime = 0;
 let animFrameId = null;
 
+// ── Timer and counter state ──
+let gameStartTime = 0;
+let elapsedBeforePause = 0;
+let tilesEntered = 0;
+
+function updateStatus() {
+    // Tile counter
+    document.getElementById("tile-counter").textContent = tilesEntered + (tilesEntered === 1 ? " tile" : " tiles");
+
+    // Clock
+    let totalSeconds;
+    if (carRunning) {
+        totalSeconds = Math.floor((elapsedBeforePause + (Date.now() - gameStartTime)) / 1000);
+    } else {
+        totalSeconds = Math.floor(elapsedBeforePause / 1000);
+    }
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    document.getElementById("game-clock").textContent = mins + ":" + (secs < 10 ? "0" : "") + secs;
+}
+
 function getSecondsPerTile() {
     const val = parseInt(document.getElementById("speed-slider").value);
     return 0.5 + (10 - val) * 0.5;
@@ -141,6 +162,7 @@ function drawTile(tile, row, col) {
 }
 
 function drawBoard() {
+    updateStatus();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw empty spaces with recessed effect
@@ -404,6 +426,7 @@ function updateCar(timestamp) {
         car.col = next.col;
         car.entering = next.entering;
         board[car.row][car.col].visited = true;
+        tilesEntered++;
 
         if (checkWin(board)) {
             carRunning = false;
@@ -445,6 +468,9 @@ function startGame() {
     document.getElementById("crash-dialog").classList.add("hidden");
     document.getElementById("pause-btn").textContent = "Pause";
     document.getElementById("game-title").textContent = currentPreset.name;
+    gameStartTime = Date.now();
+    elapsedBeforePause = 0;
+    tilesEntered = 1;
     canvas = document.getElementById("game-canvas");
     ctx = canvas.getContext("2d");
     sizeCanvas();
@@ -567,9 +593,11 @@ document.getElementById("retry-tile-btn").addEventListener("click", () => {
 document.getElementById("pause-btn").addEventListener("click", () => {
     const btn = document.getElementById("pause-btn");
     if (carRunning) {
+        elapsedBeforePause += Date.now() - gameStartTime;
         carRunning = false;
         btn.textContent = "Resume";
     } else {
+        gameStartTime = Date.now();
         carRunning = true;
         lastCarTime = 0;
         animFrameId = requestAnimationFrame(updateCar);

@@ -124,11 +124,23 @@ body {
     align-items: center;
 }
 
+.game-status {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
 #game-title {
     font-size: 2rem;
     color: #5aa0e0;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
+}
+
+#tile-counter,
+#game-clock {
+    font-size: 1.1rem;
+    color: #88aac8;
 }
 
 #game-canvas {
