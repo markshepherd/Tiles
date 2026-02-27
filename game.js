@@ -32,7 +32,7 @@ let tilesEntered = 0;
 
 function updateStatus() {
     // Tile counter
-    document.getElementById("tile-counter").textContent = tilesEntered + (tilesEntered === 1 ? " tile" : " tiles");
+    document.getElementById("tile-counter").textContent = tilesEntered;
 
     // Clock
     let totalSeconds;
