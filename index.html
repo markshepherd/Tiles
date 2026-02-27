@@ -9,22 +9,35 @@
 <body>
     <div id="home-screen">
         <div class="home-content">
-            <h1>SlideCar</h1>
-            <p class="tagline">Click to move tiles.</p>
-            <p class="tagline instructions">Visit every tile.</p>
+            <div class="title-wrapper"><h1>SlideCar</h1></div>
+            <div class="intro-middle">
+                <div class="car-animation">
+                    <span class="car-emoji">🚗</span>
+                    <span class="beep-text">beep beep!</span>
+                </div>
+                <p class="tagline">Click to move tiles.</p>
+                <p class="tagline instructions">Visit every tile.</p>
+            </div>
             <div id="level-buttons"></div>
         </div>
         <div class="home-footer">
             <p class="author">by Mark Shepherd</p>
-            <p class="build-timestamp">Build: 2026-02-27 12:33</p>
+            <p class="build-timestamp">Build: 2026-02-27 16:45</p>
         </div>
     </div>
 
     <div id="game-screen" class="hidden">
         <div class="game-status">
-            <h2 id="game-title"></h2>
-            <span id="tile-counter">0 / 15</span>
-            <span id="game-clock">0:00</span>
+            <div class="game-status-left">
+                <div class="title-wrapper"><h1 class="game-logo">SlideCar</h1></div>
+            </div>
+            <div class="game-status-center">
+                <h2 id="game-title"></h2>
+            </div>
+            <div class="game-status-right">
+                <span id="tile-counter">0 / 15</span>
+                <span id="game-clock">0:00</span>
+            </div>
         </div>
         <canvas id="game-canvas"></canvas>
         <div class="game-controls">
@@ -43,7 +56,7 @@
     <div id="win-dialog" class="hidden">
         <div class="dialog-content">
             <h2>Success!</h2>
-            <p>You visited all 15 tiles!</p>
+            <p id="win-stats"></p>
             <button id="win-play-again-btn">Replay</button>
             <button id="win-home-btn">Home</button>
         </div>

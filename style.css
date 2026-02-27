@@ -36,20 +36,131 @@ body {
     align-items: center;
 }
 
-#home-screen h1 {
-    font-size: 3rem;
+.title-wrapper {
+    position: relative;
+    display: inline-block;
     margin-bottom: 1rem;
+}
+
+.title-wrapper::before,
+.title-wrapper::after {
+    content: '';
+    position: absolute;
+    left: -70px;
+    height: 2px;
+    border-radius: 1px;
+    background: linear-gradient(to right, transparent, #5aa0e0);
+    transform: skewX(-8deg);
+}
+
+.title-wrapper::before {
+    top: 38%;
+    width: 55px;
+}
+
+.title-wrapper::after {
+    top: 58%;
+    width: 40px;
+    left: -55px;
+    opacity: 0.7;
+}
+
+#home-screen h1,
+.game-logo {
+    font-family: Impact, 'Arial Black', sans-serif;
+    font-style: italic;
+    font-size: 3.5rem;
+    margin: 0;
     color: #5aa0e0;
+    letter-spacing: 0.05em;
+    transform: skewX(-8deg);
+    text-shadow:
+        2px 2px 0 #2a6aaa,
+        4px 4px 0 #1e4f80,
+        6px 6px 0 #153a60,
+        0 0 15px rgba(90, 160, 224, 0.3);
+}
+
+.game-logo {
+    font-size: 1.15rem;
+    text-shadow:
+        1px 1px 0 #2a6aaa,
+        2px 2px 0 #1e4f80,
+        0 0 10px rgba(90, 160, 224, 0.3);
+}
+
+.intro-middle {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 8rem;
+}
+
+/* ── Car animation on home screen ── */
+.car-animation {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2.5rem;
+    transform: translateY(-50%);
+}
+
+.car-emoji {
+    position: absolute;
+    font-size: 3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    animation: slidecar 3.5s ease-in-out forwards;
+}
+
+.beep-text {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) rotate(-8deg);
+    font-weight: bold;
+    font-size: 1.4rem;
+    color: #f0c040;
+    opacity: 0;
+    animation: beepfade 3.5s ease-in-out forwards;
+    white-space: nowrap;
+}
+
+@keyframes slidecar {
+    0%   { left: calc(50vw); }
+    30%  { left: calc(50% - 1rem); }
+    65%  { left: calc(50% - 1rem); }
+    100% { left: calc(-50vw); }
+}
+
+@keyframes beepfade {
+    0%   { opacity: 0; }
+    35%  { opacity: 0; }
+    42%  { opacity: 1; }
+    58%  { opacity: 1; }
+    65%  { opacity: 0; }
+    100% { opacity: 0; }
+}
+
+@keyframes taglinefadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 .tagline {
     font-size: 1.2rem;
     margin-bottom: 0.3rem;
     color: #88aac8;
+    opacity: 0;
+    animation: taglinefadein 0.8s ease-in 3.5s forwards;
 }
 
 .tagline.instructions {
-    margin-bottom: 2rem;
+    margin-bottom: 0;
 }
 
 .home-footer {
@@ -145,12 +256,48 @@ body {
 .game-status {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    width: 100%;
+    max-width: 100vw;
+    padding: 0 1rem;
     margin-top: 1rem;
     margin-bottom: 1rem;
 }
 
+.game-status-left {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.game-status-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.game-status-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1.5rem;
+}
+
+.game-status .title-wrapper {
+    margin-bottom: 0;
+}
+
+.game-status .title-wrapper::before {
+    width: 30px;
+    left: -38px;
+}
+
+.game-status .title-wrapper::after {
+    width: 22px;
+    left: -30px;
+}
+
 #game-title {
+    font-family: Impact, 'Arial Black', sans-serif;
     font-size: 2rem;
     color: #5aa0e0;
 }

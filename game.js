@@ -1,3 +1,12 @@
+function skipCarAnimation() {
+    const container = document.querySelector(".car-animation");
+    if (container) container.style.display = "none";
+    document.querySelectorAll(".tagline").forEach(el => {
+        el.style.animation = "none";
+        el.style.opacity = "1";
+    });
+}
+
 let currentPreset = PRESETS[0];
 
 // ── Game state ──
@@ -279,6 +288,23 @@ function getCarHeading() {
     return Math.atan2(p1.y - p0.y, p1.x - p0.x);
 }
 
+let carEmojiCanvas = null;
+let carEmojiSize = 0;
+
+function getCarEmojiCanvas(size) {
+    if (carEmojiCanvas && carEmojiSize === size) return carEmojiCanvas;
+    carEmojiSize = size;
+    carEmojiCanvas = document.createElement("canvas");
+    carEmojiCanvas.width = size * 2;
+    carEmojiCanvas.height = size * 2;
+    const offCtx = carEmojiCanvas.getContext("2d");
+    offCtx.font = size + "px serif";
+    offCtx.textAlign = "center";
+    offCtx.textBaseline = "middle";
+    offCtx.fillText("🚗", size, size);
+    return carEmojiCanvas;
+}
+
 function drawCar(offsetX = 0, offsetY = 0) {
     const pos = getCarPosition(car.row, car.col, car.entering, car.progress);
     if (!pos) return;
@@ -286,88 +312,14 @@ function drawCar(offsetX = 0, offsetY = 0) {
     const cx = pos.x + offsetX;
     const cy = pos.y + offsetY;
     const heading = getCarHeading();
-    const s = tileSize / 6; // half-length of car body
+    const emojiSize = tileSize / 2.5;
+    const emojiImg = getCarEmojiCanvas(Math.round(emojiSize));
 
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(heading);
-
-    // Soft glow
-    const glow = ctx.createRadialGradient(0, 0, s * 0.5, 0, 0, s * 2.5);
-    glow.addColorStop(0, "rgba(233, 69, 96, 0.3)");
-    glow.addColorStop(1, "rgba(233, 69, 96, 0)");
-    ctx.beginPath();
-    ctx.arc(0, 0, s * 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = glow;
-    ctx.fill();
-
-    const bw = s * 1.3; // body half-width
-    const bh = s * 0.75; // body half-height
-    const r = s * 0.2;   // corner radius
-
-    // Wheels (dark rectangles behind the body)
-    ctx.fillStyle = "#222";
-    const wl = s * 0.4, ww = s * 0.25;
-    // front wheels
-    ctx.fillRect(bw * 0.35, -bh - ww * 0.5, wl, ww);
-    ctx.fillRect(bw * 0.35,  bh - ww * 0.5, wl, ww);
-    // rear wheels
-    ctx.fillRect(-bw * 0.35 - wl, -bh - ww * 0.5, wl, ww);
-    ctx.fillRect(-bw * 0.35 - wl,  bh - ww * 0.5, wl, ww);
-
-    // Car body (rounded rectangle)
-    const bodyGrad = ctx.createLinearGradient(0, -bh, 0, bh);
-    bodyGrad.addColorStop(0, "#ff5a6e");
-    bodyGrad.addColorStop(0.5, "#e94560");
-    bodyGrad.addColorStop(1, "#c73050");
-    ctx.fillStyle = bodyGrad;
-    ctx.beginPath();
-    ctx.moveTo(-bw + r, -bh);
-    ctx.lineTo(bw - r, -bh);
-    ctx.quadraticCurveTo(bw, -bh, bw, -bh + r);
-    ctx.lineTo(bw, bh - r);
-    ctx.quadraticCurveTo(bw, bh, bw - r, bh);
-    ctx.lineTo(-bw + r, bh);
-    ctx.quadraticCurveTo(-bw, bh, -bw, bh - r);
-    ctx.lineTo(-bw, -bh + r);
-    ctx.quadraticCurveTo(-bw, -bh, -bw + r, -bh);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.4)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Windshield (front)
-    ctx.fillStyle = "rgba(150, 220, 255, 0.6)";
-    ctx.beginPath();
-    const wx = bw * 0.3;
-    ctx.moveTo(wx, -bh * 0.55);
-    ctx.lineTo(bw * 0.75, -bh * 0.35);
-    ctx.lineTo(bw * 0.75,  bh * 0.35);
-    ctx.lineTo(wx,  bh * 0.55);
-    ctx.closePath();
-    ctx.fill();
-
-    // Rear window
-    ctx.fillStyle = "rgba(150, 220, 255, 0.35)";
-    ctx.beginPath();
-    ctx.moveTo(-wx, -bh * 0.45);
-    ctx.lineTo(-bw * 0.7, -bh * 0.3);
-    ctx.lineTo(-bw * 0.7,  bh * 0.3);
-    ctx.lineTo(-wx,  bh * 0.45);
-    ctx.closePath();
-    ctx.fill();
-
-    // Headlights
-    ctx.fillStyle = "rgba(255, 255, 200, 0.9)";
-    ctx.fillRect(bw - 1, -bh * 0.6, 2, bh * 0.3);
-    ctx.fillRect(bw - 1,  bh * 0.3, 2, bh * 0.3);
-
-    // Tail lights
-    ctx.fillStyle = "rgba(255, 50, 50, 0.8)";
-    ctx.fillRect(-bw - 1, -bh * 0.5, 2, bh * 0.25);
-    ctx.fillRect(-bw - 1,  bh * 0.25, 2, bh * 0.25);
-
+    ctx.scale(-1, 1);
+    ctx.drawImage(emojiImg, -emojiSize, -emojiSize, emojiSize * 2, emojiSize * 2);
     ctx.restore();
 }
 
@@ -430,7 +382,14 @@ function updateCar(timestamp) {
 
         if (checkWin(board)) {
             carRunning = false;
+            elapsedBeforePause += Date.now() - gameStartTime;
             drawBoard();
+            const totalSeconds = Math.floor(elapsedBeforePause / 1000);
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            const timeStr = mins + ":" + (secs < 10 ? "0" : "") + secs;
+            document.getElementById("win-stats").textContent =
+                tilesEntered + " tiles in " + timeStr;
             document.getElementById("win-dialog").classList.remove("hidden");
             return;
         }
@@ -552,6 +511,7 @@ document.getElementById("win-home-btn").addEventListener("click", () => {
     document.getElementById("home-screen").classList.remove("hidden");
     carRunning = false;
     car = null;
+    skipCarAnimation();
 });
 
 // ── Crash dialog buttons ──
@@ -566,6 +526,7 @@ document.getElementById("home-btn").addEventListener("click", () => {
     document.getElementById("home-screen").classList.remove("hidden");
     carRunning = false;
     car = null;
+    skipCarAnimation();
 });
 
 document.getElementById("reverse-btn").addEventListener("click", () => {
@@ -616,6 +577,7 @@ document.getElementById("game-home-btn").addEventListener("click", () => {
     document.getElementById("home-screen").classList.remove("hidden");
     carRunning = false;
     car = null;
+    skipCarAnimation();
 });
 
 // ── Build level buttons ──
