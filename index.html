@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road Tiles</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="home-screen">
+        <h1>Road Tiles</h1>
+        <button id="play-btn">Play</button>
+        <div class="speed-control">
+            <label for="speed-slider">Speed</label>
+            <input type="range" id="speed-slider" min="1" max="10" value="3">
+        </div>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        <canvas id="game-canvas"></canvas>
+    </div>
+
+    <div id="win-dialog" class="hidden">
+        <div class="dialog-content">
+            <h2>You Win!</h2>
+            <p>The car visited all 15 tiles!</p>
+            <button id="win-play-again-btn">Play Again</button>
+            <button id="win-home-btn">Home Screen</button>
+        </div>
+    </div>
+
+    <div id="crash-dialog" class="hidden">
+        <div class="dialog-content">
+            <h2>Crash!</h2>
+            <button id="start-over-btn">Start Over</button>
+            <button id="home-btn">Home Screen</button>
+            <button id="reverse-btn">Reverse &amp; Continue</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
