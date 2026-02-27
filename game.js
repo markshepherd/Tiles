@@ -395,6 +395,10 @@ function updateCar(timestamp) {
             const timeStr = mins + ":" + (secs < 10 ? "0" : "") + secs;
             document.getElementById("win-stats").textContent =
                 tilesEntered + " tiles in " + timeStr;
+            const winHeading = document.querySelector("#win-dialog h2");
+            winHeading.style.animation = "none";
+            winHeading.offsetHeight;
+            winHeading.style.animation = "";
             document.getElementById("win-dialog").classList.remove("hidden");
             return;
         }
