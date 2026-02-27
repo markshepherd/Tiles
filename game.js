@@ -417,6 +417,7 @@ function sizeCanvas() {
     tileSize = Math.floor(maxDim / GRID);
     canvas.width = tileSize * GRID;
     canvas.height = tileSize * GRID;
+    document.querySelector(".game-status").style.width = canvas.width + "px";
 }
 
 // ── Init ──
