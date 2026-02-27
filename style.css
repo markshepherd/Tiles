@@ -49,12 +49,37 @@ body {
     background: #c73650;
 }
 
+.game-controls {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    justify-content: center;
+}
+
 .speed-control {
-    margin-top: 1.5rem;
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    justify-content: center;
+}
+
+.game-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.game-buttons button {
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+    background: #0f3460;
+    color: #eee;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.game-buttons button:hover {
+    background: #1a4a7a;
 }
 
 .speed-control label {

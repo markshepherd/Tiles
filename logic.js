@@ -60,6 +60,39 @@ var PRESETS = [
         empty: { row: 2, col: 1 },
         car: { row: 0, col: 3, entering: "top" },
     },
+    {
+        name: "Level 3",
+        grid: [
+            [TL,  V,   V,   V],
+            [ H, BR,   S,   V],
+            [ V,  H,  __,   S],
+            [BL, TR,   H,   V],
+        ],
+        empty: { row: 2, col: 2 },
+        car: { row: 0, col: 3, entering: "top" },
+    },
+    {
+        name: "Snake",
+        grid: [
+            [TR,  H,   H,   BL],
+            [BR, H,   H,  TL],
+            [TR, H,   H,  BL],
+            [__, H,   H,   TL],
+        ],
+        empty: { row: 3, col: 0 },
+        car: { row: 0, col: 0, entering: "top" },
+    },
+    {
+        name: "Circles",
+        grid: [
+            [BR, BL,  BR,  BL],
+            [TR, TL,  TR,  TL],
+            [BR, BL,  BR,  BL],
+            [TR, TL,  TR,  __],
+        ],
+        empty: { row: 3, col: 3 },
+        car: { row: 0, col: 0, entering: "bottom" },
+    },
 ];
 
 // Given a tile type and the edge the car entered from, return the exit edge

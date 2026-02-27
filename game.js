@@ -366,6 +366,8 @@ function sizeCanvas() {
 function startGame() {
     document.getElementById("home-screen").classList.add("hidden");
     document.getElementById("game-screen").classList.remove("hidden");
+    document.getElementById("win-dialog").classList.add("hidden");
+    document.getElementById("crash-dialog").classList.add("hidden");
     canvas = document.getElementById("game-canvas");
     ctx = canvas.getContext("2d");
     sizeCanvas();
@@ -470,6 +472,20 @@ document.getElementById("reverse-btn").addEventListener("click", () => {
     carRunning = true;
     lastCarTime = 0;
     animFrameId = requestAnimationFrame(updateCar);
+});
+
+// ── Game screen buttons ──
+document.getElementById("game-start-over-btn").addEventListener("click", () => {
+    startGame();
+});
+
+document.getElementById("game-home-btn").addEventListener("click", () => {
+    document.getElementById("game-screen").classList.add("hidden");
+    document.getElementById("win-dialog").classList.add("hidden");
+    document.getElementById("crash-dialog").classList.add("hidden");
+    document.getElementById("home-screen").classList.remove("hidden");
+    carRunning = false;
+    car = null;
 });
 
 // ── Build level buttons ──
