@@ -504,6 +504,10 @@ function handleKeyDown(e) {
         case "ArrowDown":  row -= 1; break;
         case "ArrowLeft":  col += 1; break;
         case "ArrowRight": col -= 1; break;
+        case " ":
+            e.preventDefault();
+            document.getElementById("pause-btn").click();
+            return;
         default: return;
     }
     e.preventDefault();
