@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Road Tiles</title>
+    <title>SlideCar</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="home-screen">
-        <h1>Road Tiles</h1>
-        <p class="tagline">Visit every tile!</p>
+        <h1>SlideCar</h1>
+        <p class="tagline">Visit every tile.</p>
+        <p class="tagline instructions">Click to move tiles (or use arrows).</p>
         <div id="level-buttons"></div>
     </div>
 
@@ -21,7 +22,7 @@
                 <input type="range" id="speed-slider" min="1" max="10" value="3">
             </div>
             <div class="game-buttons">
-                <button id="game-start-over-btn">Start Over</button>
+                <button id="game-start-over-btn">Replay</button>
                 <button id="game-home-btn">Home</button>
             </div>
         </div>
@@ -31,7 +32,7 @@
         <div class="dialog-content">
             <h2>You Win!</h2>
             <p>The car visited all 15 tiles!</p>
-            <button id="win-play-again-btn">Start Over</button>
+            <button id="win-play-again-btn">Replay</button>
             <button id="win-home-btn">Home</button>
         </div>
     </div>
@@ -39,9 +40,10 @@
     <div id="crash-dialog" class="hidden">
         <div class="dialog-content">
             <h2>Crash!</h2>
-            <button id="start-over-btn">Start Over</button>
+            <button id="start-over-btn">Replay</button>
             <button id="home-btn">Home</button>
             <button id="reverse-btn">Reverse &amp; Continue</button>
+            <button id="retry-tile-btn">Retry This Tile</button>
         </div>
     </div>
 

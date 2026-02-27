@@ -544,6 +544,14 @@ document.getElementById("reverse-btn").addEventListener("click", () => {
     animFrameId = requestAnimationFrame(updateCar);
 });
 
+document.getElementById("retry-tile-btn").addEventListener("click", () => {
+    document.getElementById("crash-dialog").classList.add("hidden");
+    car.progress = 0;
+    carRunning = true;
+    lastCarTime = 0;
+    animFrameId = requestAnimationFrame(updateCar);
+});
+
 // ── Game screen buttons ──
 document.getElementById("game-start-over-btn").addEventListener("click", () => {
     startGame();

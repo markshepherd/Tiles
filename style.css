@@ -5,7 +5,7 @@
 }
 
 body {
-    background: #1a1a2e;
+    background: radial-gradient(ellipse at center, #1a2a4a, #101828 60%, #0a0e1a);
     color: #eee;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     display: flex;
@@ -25,14 +25,18 @@ body {
 
 #home-screen h1 {
     font-size: 3rem;
-    margin-bottom: 2rem;
-    color: #e94560;
+    margin-bottom: 1rem;
+    color: #8ab8d8;
 }
 
 .tagline {
     font-size: 1.2rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.3rem;
     color: #aab;
+}
+
+.tagline.instructions {
+    margin-bottom: 2rem;
 }
 
 #level-buttons {
@@ -45,7 +49,7 @@ body {
 .level-btn {
     font-size: 1.3rem;
     padding: 0.8rem 2rem;
-    background: #e94560;
+    background: #4a7a9a;
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -53,7 +57,7 @@ body {
 }
 
 .level-btn:hover {
-    background: #c73650;
+    background: #3a6a88;
 }
 
 .game-controls {
@@ -109,6 +113,7 @@ body {
     border-radius: 4px;
 }
 
+#win-dialog,
 #crash-dialog {
     position: fixed;
     inset: 0;
