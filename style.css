@@ -22,6 +22,18 @@ body {
 #home-screen {
     text-align: center;
     padding: 0 1rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.home-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 #home-screen h1 {
@@ -40,22 +52,18 @@ body {
     margin-bottom: 2rem;
 }
 
+.home-footer {
+    margin-top: auto;
+    padding-bottom: 1rem;
+}
+
 .author {
-    position: fixed;
-    bottom: 1.5rem;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 0.85rem;
+    font-size: 0.7rem;
     color: #556;
+    margin-bottom: 0.3rem;
 }
 
 .build-timestamp {
-    position: fixed;
-    bottom: 0.5rem;
-    left: 0;
-    right: 0;
-    text-align: center;
     font-size: 0.7rem;
     color: #445;
 }
