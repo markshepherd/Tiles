@@ -426,7 +426,12 @@ function initBoard() {
 
 // ── Canvas sizing ──
 function sizeCanvas() {
-    const maxDim = Math.min(window.innerWidth, window.innerHeight - 27) - 40;
+    const title = document.getElementById("game-title");
+    const controls = document.querySelector(".game-controls");
+    const titleH = title ? title.getBoundingClientRect().height + parseFloat(getComputedStyle(title).marginTop) + parseFloat(getComputedStyle(title).marginBottom) : 0;
+    const controlsH = controls ? controls.getBoundingClientRect().height + parseFloat(getComputedStyle(controls).marginTop) + parseFloat(getComputedStyle(controls).marginBottom) : 0;
+    const chrome = titleH + controlsH + 20;
+    const maxDim = Math.min(window.innerWidth - 20, window.innerHeight - chrome);
     tileSize = Math.floor(maxDim / GRID);
     canvas.width = tileSize * GRID;
     canvas.height = tileSize * GRID;
@@ -438,6 +443,8 @@ function startGame() {
     document.getElementById("game-screen").classList.remove("hidden");
     document.getElementById("win-dialog").classList.add("hidden");
     document.getElementById("crash-dialog").classList.add("hidden");
+    document.getElementById("pause-btn").textContent = "Pause";
+    document.getElementById("game-title").textContent = currentPreset.name;
     canvas = document.getElementById("game-canvas");
     ctx = canvas.getContext("2d");
     sizeCanvas();
@@ -553,6 +560,19 @@ document.getElementById("retry-tile-btn").addEventListener("click", () => {
 });
 
 // ── Game screen buttons ──
+document.getElementById("pause-btn").addEventListener("click", () => {
+    const btn = document.getElementById("pause-btn");
+    if (carRunning) {
+        carRunning = false;
+        btn.textContent = "Resume";
+    } else {
+        carRunning = true;
+        lastCarTime = 0;
+        animFrameId = requestAnimationFrame(updateCar);
+        btn.textContent = "Pause";
+    }
+});
+
 document.getElementById("game-start-over-btn").addEventListener("click", () => {
     startGame();
 });
