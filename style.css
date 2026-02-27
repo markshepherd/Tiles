@@ -12,6 +12,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    padding-bottom: 2rem;
 }
 
 .hidden {
@@ -26,6 +27,12 @@ body {
     font-size: 3rem;
     margin-bottom: 2rem;
     color: #e94560;
+}
+
+.tagline {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    color: #aab;
 }
 
 #level-buttons {
@@ -51,6 +58,7 @@ body {
 
 .game-controls {
     margin-top: 1rem;
+    margin-bottom: 2rem;
     display: flex;
     align-items: center;
     gap: 1.5rem;

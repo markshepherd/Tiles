@@ -248,35 +248,105 @@ function getCarPosition(row, col, enteringEdge, progress) {
     };
 }
 
+function getCarHeading() {
+    // Compute heading by sampling two nearby positions
+    const dt = 0.01;
+    const p0 = getCarPosition(car.row, car.col, car.entering, Math.max(0, car.progress - dt));
+    const p1 = getCarPosition(car.row, car.col, car.entering, Math.min(1, car.progress + dt));
+    if (!p0 || !p1) return 0;
+    return Math.atan2(p1.y - p0.y, p1.x - p0.x);
+}
+
 function drawCar(offsetX = 0, offsetY = 0) {
     const pos = getCarPosition(car.row, car.col, car.entering, car.progress);
     if (!pos) return;
 
     const cx = pos.x + offsetX;
     const cy = pos.y + offsetY;
-    const radius = tileSize / 7;
+    const heading = getCarHeading();
+    const s = tileSize / 6; // half-length of car body
 
-    // Soft glow behind car
-    const glow = ctx.createRadialGradient(cx, cy, radius * 0.5, cx, cy, radius * 2.5);
-    glow.addColorStop(0, "rgba(233, 69, 96, 0.35)");
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(heading);
+
+    // Soft glow
+    const glow = ctx.createRadialGradient(0, 0, s * 0.5, 0, 0, s * 2.5);
+    glow.addColorStop(0, "rgba(233, 69, 96, 0.3)");
     glow.addColorStop(1, "rgba(233, 69, 96, 0)");
     ctx.beginPath();
-    ctx.arc(cx, cy, radius * 2.5, 0, Math.PI * 2);
+    ctx.arc(0, 0, s * 2.5, 0, Math.PI * 2);
     ctx.fillStyle = glow;
     ctx.fill();
 
-    // Gradient-filled car circle
-    const carGrad = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, 0, cx, cy, radius);
-    carGrad.addColorStop(0, "#ff7a8a");
-    carGrad.addColorStop(0.7, "#e94560");
-    carGrad.addColorStop(1, "#a82040");
+    const bw = s * 1.3; // body half-width
+    const bh = s * 0.75; // body half-height
+    const r = s * 0.2;   // corner radius
+
+    // Wheels (dark rectangles behind the body)
+    ctx.fillStyle = "#222";
+    const wl = s * 0.4, ww = s * 0.25;
+    // front wheels
+    ctx.fillRect(bw * 0.35, -bh - ww * 0.5, wl, ww);
+    ctx.fillRect(bw * 0.35,  bh - ww * 0.5, wl, ww);
+    // rear wheels
+    ctx.fillRect(-bw * 0.35 - wl, -bh - ww * 0.5, wl, ww);
+    ctx.fillRect(-bw * 0.35 - wl,  bh - ww * 0.5, wl, ww);
+
+    // Car body (rounded rectangle)
+    const bodyGrad = ctx.createLinearGradient(0, -bh, 0, bh);
+    bodyGrad.addColorStop(0, "#ff5a6e");
+    bodyGrad.addColorStop(0.5, "#e94560");
+    bodyGrad.addColorStop(1, "#c73050");
+    ctx.fillStyle = bodyGrad;
     ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.fillStyle = carGrad;
+    ctx.moveTo(-bw + r, -bh);
+    ctx.lineTo(bw - r, -bh);
+    ctx.quadraticCurveTo(bw, -bh, bw, -bh + r);
+    ctx.lineTo(bw, bh - r);
+    ctx.quadraticCurveTo(bw, bh, bw - r, bh);
+    ctx.lineTo(-bw + r, bh);
+    ctx.quadraticCurveTo(-bw, bh, -bw, bh - r);
+    ctx.lineTo(-bw, -bh + r);
+    ctx.quadraticCurveTo(-bw, -bh, -bw + r, -bh);
+    ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.7)";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255,255,255,0.4)";
+    ctx.lineWidth = 1;
     ctx.stroke();
+
+    // Windshield (front)
+    ctx.fillStyle = "rgba(150, 220, 255, 0.6)";
+    ctx.beginPath();
+    const wx = bw * 0.3;
+    ctx.moveTo(wx, -bh * 0.55);
+    ctx.lineTo(bw * 0.75, -bh * 0.35);
+    ctx.lineTo(bw * 0.75,  bh * 0.35);
+    ctx.lineTo(wx,  bh * 0.55);
+    ctx.closePath();
+    ctx.fill();
+
+    // Rear window
+    ctx.fillStyle = "rgba(150, 220, 255, 0.35)";
+    ctx.beginPath();
+    ctx.moveTo(-wx, -bh * 0.45);
+    ctx.lineTo(-bw * 0.7, -bh * 0.3);
+    ctx.lineTo(-bw * 0.7,  bh * 0.3);
+    ctx.lineTo(-wx,  bh * 0.45);
+    ctx.closePath();
+    ctx.fill();
+
+    // Headlights
+    ctx.fillStyle = "rgba(255, 255, 200, 0.9)";
+    ctx.fillRect(bw - 1, -bh * 0.6, 2, bh * 0.3);
+    ctx.fillRect(bw - 1,  bh * 0.3, 2, bh * 0.3);
+
+    // Tail lights
+    ctx.fillStyle = "rgba(255, 50, 50, 0.8)";
+    ctx.fillRect(-bw - 1, -bh * 0.5, 2, bh * 0.25);
+    ctx.fillRect(-bw - 1,  bh * 0.25, 2, bh * 0.25);
+
+    ctx.restore();
 }
 
 function animateSlide(timestamp) {
@@ -356,7 +426,7 @@ function initBoard() {
 
 // ── Canvas sizing ──
 function sizeCanvas() {
-    const maxDim = Math.min(window.innerWidth, window.innerHeight) - 40;
+    const maxDim = Math.min(window.innerWidth, window.innerHeight - 27) - 40;
     tileSize = Math.floor(maxDim / GRID);
     canvas.width = tileSize * GRID;
     canvas.height = tileSize * GRID;

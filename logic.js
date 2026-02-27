@@ -39,7 +39,7 @@ var GRID = 4;
 // ── Presets ──
 var PRESETS = [
     {
-        name: "Level 1",
+        name: "Cloverleaf",
         grid: [
             [S,  X,  X, Z],
             [X,  S,  Z, X],
@@ -50,7 +50,7 @@ var PRESETS = [
         car: { row: 0, col: 0, entering: "bottom" },
     },
     {
-        name: "Level 2",
+        name: "Easy",
         grid: [
             [BR,  H, BL,  V],
             [ V, BL,  V,  V],
@@ -61,7 +61,7 @@ var PRESETS = [
         car: { row: 0, col: 3, entering: "top" },
     },
     {
-        name: "Level 3",
+        name: "Very Hard",
         grid: [
             [TL,  V,   V,   V],
             [ H, BR,   S,   V],
