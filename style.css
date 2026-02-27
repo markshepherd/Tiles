@@ -40,6 +40,16 @@ body {
     margin-bottom: 2rem;
 }
 
+.author {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #556;
+}
+
 .build-timestamp {
     position: fixed;
     bottom: 0.5rem;
