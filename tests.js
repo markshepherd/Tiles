@@ -1,9 +1,17 @@
 import assert from "node:assert/strict";
-import {
-    H, V, TL, TR, BR, BL, X, S, Z, __,
-    TILE_TYPES, OPPOSITE, EDGE_DELTA, GRID, PRESETS,
-    getExitEdge, createBoard, trySlide, checkWin, getNextCarState,
-} from "./logic.js";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+import vm from "node:vm";
+
+const dir = dirname(fileURLToPath(import.meta.url));
+const logicCode = readFileSync(join(dir, "logic.js"), "utf-8");
+
+// Run logic.js in the current global context to capture its declarations
+vm.runInThisContext(logicCode);
+const { H, V, TL, TR, BR, BL, X, S, Z,
+        TILE_TYPES, OPPOSITE, EDGE_DELTA, GRID, PRESETS,
+        getExitEdge, createBoard, trySlide, checkWin, getNextCarState } = globalThis;
 
 let passed = 0;
 let failed = 0;

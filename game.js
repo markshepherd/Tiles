@@ -1,9 +1,3 @@
-import {
-    H, V, TL, TR, BR, BL, X, S, Z, __,
-    TILE_TYPES, OPPOSITE, EDGE_DELTA, GRID, PRESETS,
-    getExitEdge, createBoard, checkWin, getNextCarState,
-} from "./logic.js";
-
 let currentPreset = PRESETS[0];
 
 // ── Game state ──
@@ -39,16 +33,7 @@ function edgeMid(edge) {
 }
 
 // ── Drawing helpers ──
-function drawRoadSegment(ctx, ox, oy, edgeA, edgeB) {
-    const roadWidth = tileSize / 4;
-    const half = tileSize / 2;
-    ctx.strokeStyle = "#ccc";
-    ctx.lineWidth = roadWidth;
-    ctx.lineCap = "butt";
-
-    const edges = [edgeA, edgeB].sort().join(",");
-    ctx.beginPath();
-
+function traceRoadPath(ctx, ox, oy, edges, half) {
     if (edges === "left,right") {
         ctx.moveTo(ox, oy + half);
         ctx.lineTo(ox + tileSize, oy + half);
@@ -72,33 +57,119 @@ function drawRoadSegment(ctx, ox, oy, edgeA, edgeB) {
         }
         ctx.arc(cx, cy, half, startAngle, endAngle);
     }
+}
+
+function drawRoadSegment(ctx, ox, oy, edgeA, edgeB) {
+    const roadWidth = tileSize / 4;
+    const half = tileSize / 2;
+    const edges = [edgeA, edgeB].sort().join(",");
+
+    // Layer 1: dark border stroke (widest)
+    ctx.beginPath();
+    traceRoadPath(ctx, ox, oy, edges, half);
+    ctx.strokeStyle = "#2a2a2a";
+    ctx.lineWidth = roadWidth + 4;
+    ctx.lineCap = "butt";
+    ctx.setLineDash([]);
     ctx.stroke();
+
+    // Layer 2: asphalt fill (middle)
+    ctx.beginPath();
+    traceRoadPath(ctx, ox, oy, edges, half);
+    ctx.strokeStyle = "#777";
+    ctx.lineWidth = roadWidth;
+    ctx.lineCap = "butt";
+    ctx.setLineDash([]);
+    ctx.stroke();
+
+    // Layer 3: dashed center line (thinnest)
+    ctx.beginPath();
+    traceRoadPath(ctx, ox, oy, edges, half);
+    ctx.strokeStyle = "#f0c040";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "butt";
+    ctx.setLineDash([tileSize / 10, tileSize / 14]);
+    ctx.stroke();
+    ctx.setLineDash([]);
 }
 
 function drawTile(tile, row, col) {
     const ox = col * tileSize;
     const oy = row * tileSize;
+    const cx = ox + tileSize / 2;
+    const cy = oy + tileSize / 2;
 
-    ctx.fillStyle = tile.visited ? "#1e3a2f" : "#2a4a7a";
+    // Radial gradient background
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, tileSize * 0.7);
+    if (tile.visited) {
+        grad.addColorStop(0, "#2a5a45");
+        grad.addColorStop(1, "#132e22");
+    } else {
+        grad.addColorStop(0, "#3a6ab0");
+        grad.addColorStop(1, "#1a3060");
+    }
+    ctx.fillStyle = grad;
     ctx.fillRect(ox, oy, tileSize, tileSize);
 
-    ctx.strokeStyle = "#0f3460";
+    // 3D raised effect: highlight on top/left, shadow on bottom/right
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
     ctx.lineWidth = 1;
-    ctx.strokeRect(ox + 0.5, oy + 0.5, tileSize - 1, tileSize - 1);
+    ctx.beginPath();
+    ctx.moveTo(ox + 0.5, oy + tileSize - 0.5);
+    ctx.lineTo(ox + 0.5, oy + 0.5);
+    ctx.lineTo(ox + tileSize - 0.5, oy + 0.5);
+    ctx.stroke();
 
+    ctx.strokeStyle = "rgba(0,0,0,0.3)";
+    ctx.beginPath();
+    ctx.moveTo(ox + tileSize - 0.5, oy + 0.5);
+    ctx.lineTo(ox + tileSize - 0.5, oy + tileSize - 0.5);
+    ctx.lineTo(ox + 0.5, oy + tileSize - 0.5);
+    ctx.stroke();
+
+    // Draw roads
     const tileDef = TILE_TYPES[tile.type];
     for (const [a, b] of tileDef.connections) {
         drawRoadSegment(ctx, ox, oy, a, b);
+    }
+
+    // Visited tile green glow overlay
+    if (tile.visited) {
+        ctx.fillStyle = "rgba(50, 220, 100, 0.07)";
+        ctx.fillRect(ox, oy, tileSize, tileSize);
     }
 }
 
 function drawBoard() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "#0a0a1a";
-    ctx.fillRect(emptyPos.col * tileSize, emptyPos.row * tileSize, tileSize, tileSize);
-    if (sliding) {
-        ctx.fillRect(sliding.fromCol * tileSize, sliding.fromRow * tileSize, tileSize, tileSize);
+    // Draw empty spaces with recessed effect
+    const emptySlots = [{ col: emptyPos.col, row: emptyPos.row }];
+    if (sliding) emptySlots.push({ col: sliding.fromCol, row: sliding.fromRow });
+
+    for (const slot of emptySlots) {
+        const ex = slot.col * tileSize;
+        const ey = slot.row * tileSize;
+
+        ctx.fillStyle = "#060610";
+        ctx.fillRect(ex, ey, tileSize, tileSize);
+
+        // Inset shadow: dark on top/left, light on bottom/right
+        ctx.strokeStyle = "rgba(0,0,0,0.5)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(ex + 1, ey + tileSize - 1);
+        ctx.lineTo(ex + 1, ey + 1);
+        ctx.lineTo(ex + tileSize - 1, ey + 1);
+        ctx.stroke();
+
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(ex + tileSize - 1, ey + 1);
+        ctx.lineTo(ex + tileSize - 1, ey + tileSize - 1);
+        ctx.lineTo(ex + 1, ey + tileSize - 1);
+        ctx.stroke();
     }
 
     for (let r = 0; r < GRID; r++) {
@@ -181,12 +252,29 @@ function drawCar(offsetX = 0, offsetY = 0) {
     const pos = getCarPosition(car.row, car.col, car.entering, car.progress);
     if (!pos) return;
 
-    const radius = tileSize / 8;
+    const cx = pos.x + offsetX;
+    const cy = pos.y + offsetY;
+    const radius = tileSize / 7;
+
+    // Soft glow behind car
+    const glow = ctx.createRadialGradient(cx, cy, radius * 0.5, cx, cy, radius * 2.5);
+    glow.addColorStop(0, "rgba(233, 69, 96, 0.35)");
+    glow.addColorStop(1, "rgba(233, 69, 96, 0)");
     ctx.beginPath();
-    ctx.arc(pos.x + offsetX, pos.y + offsetY, radius, 0, Math.PI * 2);
-    ctx.fillStyle = "#e94560";
+    ctx.arc(cx, cy, radius * 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = glow;
     ctx.fill();
-    ctx.strokeStyle = "#fff";
+
+    // Gradient-filled car circle
+    const carGrad = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, 0, cx, cy, radius);
+    carGrad.addColorStop(0, "#ff7a8a");
+    carGrad.addColorStop(0.7, "#e94560");
+    carGrad.addColorStop(1, "#a82040");
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fillStyle = carGrad;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.7)";
     ctx.lineWidth = 2;
     ctx.stroke();
 }

@@ -1,17 +1,17 @@
 // ── Tile type IDs ──
-export const H   = 1; // Horizontal
-export const V   = 2; // Vertical
-export const TL  = 3; // Curve Top-Left
-export const TR  = 4; // Curve Top-Right
-export const BR  = 5; // Curve Bottom-Right
-export const BL  = 6; // Curve Bottom-Left
-export const X   = 7; // Cross
-export const S   = 8; // S-curve
-export const Z   = 9; // Z-curve
-export const __  = 0; // Empty
+var H   = 1; // Horizontal
+var V   = 2; // Vertical
+var TL  = 3; // Curve Top-Left
+var TR  = 4; // Curve Top-Right
+var BR  = 5; // Curve Bottom-Right
+var BL  = 6; // Curve Bottom-Left
+var X   = 7; // Cross
+var S   = 8; // S-curve
+var Z   = 9; // Z-curve
+var __  = 0; // Empty
 
 // ── Tile type definitions ──
-export const TILE_TYPES = {
+var TILE_TYPES = {
     1: { name: "Horizontal", connections: [["left", "right"]] },
     2: { name: "Vertical",   connections: [["top", "bottom"]] },
     3: { name: "Curve TL",   connections: [["top", "left"]] },
@@ -24,20 +24,20 @@ export const TILE_TYPES = {
 };
 
 // Opposite edges for entering the next tile
-export const OPPOSITE = { top: "bottom", bottom: "top", left: "right", right: "left" };
+var OPPOSITE = { top: "bottom", bottom: "top", left: "right", right: "left" };
 
 // Direction offsets: which adjacent cell does an exit edge lead to?
-export const EDGE_DELTA = {
+var EDGE_DELTA = {
     top:    { dr: -1, dc: 0 },
     bottom: { dr: 1,  dc: 0 },
     left:   { dr: 0,  dc: -1 },
     right:  { dr: 0,  dc: 1 },
 };
 
-export const GRID = 4;
+var GRID = 4;
 
 // ── Presets ──
-export const PRESETS = [
+var PRESETS = [
     {
         name: "Level 1",
         grid: [
@@ -63,7 +63,7 @@ export const PRESETS = [
 ];
 
 // Given a tile type and the edge the car entered from, return the exit edge
-export function getExitEdge(tileType, enteringEdge) {
+function getExitEdge(tileType, enteringEdge) {
     const tileDef = TILE_TYPES[tileType];
     if (!tileDef) return null;
     const conns = tileDef.connections;
@@ -75,7 +75,7 @@ export function getExitEdge(tileType, enteringEdge) {
 }
 
 // Create a board from a preset. Returns { board, emptyPos }.
-export function createBoard(preset) {
+function createBoard(preset) {
     const board = [];
     for (let r = 0; r < GRID; r++) {
         board[r] = [];
@@ -94,7 +94,7 @@ export function createBoard(preset) {
 
 // Try to slide a tile at (row, col) into the empty position.
 // Returns new { board, emptyPos } or null if the move is invalid.
-export function trySlide(board, emptyPos, row, col) {
+function trySlide(board, emptyPos, row, col) {
     if (row < 0 || row >= GRID || col < 0 || col >= GRID) return null;
     if (!board[row][col]) return null;
 
@@ -114,7 +114,7 @@ export function trySlide(board, emptyPos, row, col) {
 }
 
 // Check if all tiles on the board have been visited.
-export function checkWin(board) {
+function checkWin(board) {
     for (let r = 0; r < GRID; r++) {
         for (let c = 0; c < GRID; c++) {
             if (board[r][c] && !board[r][c].visited) return false;
@@ -126,7 +126,7 @@ export function checkWin(board) {
 // Given board and car state {row, col, entering}, return the next car state
 // after the car exits the current tile and enters the next one.
 // Returns {row, col, entering} or null if the car crashes.
-export function getNextCarState(board, car) {
+function getNextCarState(board, car) {
     const tile = board[car.row] && board[car.row][car.col];
     if (!tile) return null;
 
