@@ -429,8 +429,17 @@ function sizeCanvas() {
     document.querySelector(".game-status").style.width = canvas.width + "px";
 }
 
+function requestFullscreen() {
+    const el = document.documentElement;
+    const rfs = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (rfs && !document.fullscreenElement && !document.webkitFullscreenElement) {
+        rfs.call(el).catch(() => {});
+    }
+}
+
 // ── Init ──
 function startGame() {
+    requestFullscreen();
     document.getElementById("home-screen").classList.add("hidden");
     document.getElementById("game-screen").classList.remove("hidden");
     document.getElementById("win-dialog").classList.add("hidden");
