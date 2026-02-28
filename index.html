@@ -18,13 +18,15 @@
                     <span class="beep-text">beep beep!</span>
                 </div>
                 <p class="tagline">Tap a tile to move it.</p>
-                <p class="tagline instructions">Visit every tile to win.</p>
+                <p class="tagline">Hold spacebar to go fast.</p>
+                <p class="tagline">Hold dot to pause.</p>
+                <p class="tagline keyboard-hint">Visit every tile to win.</p>
             </div>
             <div id="level-buttons"></div>
         </div>
         <div class="home-footer">
             <p class="author">by Mark Shepherd</p>
-            <p class="build-timestamp">2026-02-28 12:00</p>
+            <p class="build-timestamp">2026-02-28 13:00</p>
         </div>
     </div>
 
@@ -48,10 +50,15 @@
                 <input type="range" id="speed-slider" min="1" max="10" value="3">
             </div>
             <div class="game-buttons">
-                <button id="pause-btn">Pause</button>
-                <button id="fast-btn">&#x23E9; Fast</button>
-                <button id="game-start-over-btn">Replay</button>
-                <button id="game-home-btn">Home</button>
+                <div class="btn-group">
+                    <button id="pause-btn">Pause</button>
+                    <button id="fast-btn">&#x23E9; Fast</button>
+                </div>
+                <hr class="btn-separator">
+                <div class="btn-group">
+                    <button id="game-start-over-btn">Replay</button>
+                    <button id="game-home-btn">Home</button>
+                </div>
                 <div id="preset-buttons" class="preset-buttons hidden">
                     <button id="edit-preset-btn">Edit Preset</button>
                     <button id="remove-preset-btn">Remove Preset</button>
