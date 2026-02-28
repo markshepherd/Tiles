@@ -446,14 +446,11 @@ function startGame() {
     document.getElementById("crash-dialog").classList.add("hidden");
     document.getElementById("pause-btn").textContent = "Pause";
     document.getElementById("game-title").textContent = currentPreset.name;
-    const removeBtn = document.getElementById("remove-preset-btn");
-    const editBtn = document.getElementById("edit-preset-btn");
+    const presetBtns = document.getElementById("preset-buttons");
     if (currentPreset._firebaseKey) {
-        removeBtn.classList.remove("hidden");
-        editBtn.classList.remove("hidden");
+        presetBtns.classList.remove("hidden");
     } else {
-        removeBtn.classList.add("hidden");
-        editBtn.classList.add("hidden");
+        presetBtns.classList.add("hidden");
     }
     gameStartTime = Date.now();
     elapsedBeforePause = 0;

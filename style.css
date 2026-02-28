@@ -233,6 +233,8 @@ body {
 .game-buttons {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .game-buttons button {
@@ -248,6 +250,18 @@ body {
 
 .game-buttons button:hover {
     background: #1a4a7a;
+}
+
+.preset-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+@media (max-width: 600px) {
+    .preset-buttons {
+        flex-basis: 100%;
+    }
 }
 
 .speed-control label {
