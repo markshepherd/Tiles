@@ -1003,32 +1003,39 @@ function initCreateGridHandlers() {
         }
     });
 
-    // Touch handling: manual double-tap detection + drag
-    let lastTap = { time: 0, row: -1, col: -1 };
-
+    // Touch: drag start
     createCanvas.addEventListener("touchstart", (e) => {
         const rect = createCanvas.getBoundingClientRect();
         const t = e.touches[0];
         const col = Math.floor((t.clientX - rect.left) / createTileSize);
         const row = Math.floor((t.clientY - rect.top) / createTileSize);
-        if (row < 0 || row >= GRID || col < 0 || col >= GRID) return;
-
-        const now = Date.now();
-        if (now - lastTap.time < 300 && row === lastTap.row && col === lastTap.col) {
-            // Double-tap: remove tile
+        if (row >= 0 && row < GRID && col >= 0 && col < GRID && createGrid[row][col] !== 0) {
             e.preventDefault();
-            if (createGrid[row][col] !== 0) {
-                createGrid[row][col] = 0;
-                drawCreateGrid();
-                updateCreateButton();
-            }
-            lastTap = { time: 0, row: -1, col: -1 };
+            startDrag(createGrid[row][col], row, col, t.clientX, t.clientY, createCanvas);
+        }
+    });
+
+    // Touch: double-tap detection on touchend (fires before the global endDrag handler)
+    let lastTapEnd = { time: 0, row: -1, col: -1 };
+
+    createCanvas.addEventListener("touchend", (e) => {
+        const rect = createCanvas.getBoundingClientRect();
+        const t = e.changedTouches[0];
+        const col = Math.floor((t.clientX - rect.left) / createTileSize);
+        const row = Math.floor((t.clientY - rect.top) / createTileSize);
+        const now = Date.now();
+
+        if (row >= 0 && row < GRID && col >= 0 && col < GRID &&
+            now - lastTapEnd.time < 300 && row === lastTapEnd.row && col === lastTapEnd.col) {
+            // Double-tap: cancel any drag in progress and remove the tile
+            if (createDrag) { createDrag.ghostEl.remove(); createDrag = null; }
+            createGrid[row][col] = 0;
+            drawCreateGrid();
+            updateCreateButton();
+            lastTapEnd = { time: 0, row: -1, col: -1 };
+            e.stopPropagation(); // prevent global touchend from calling endDrag
         } else {
-            lastTap = { time: now, row, col };
-            if (createGrid[row][col] !== 0) {
-                e.preventDefault();
-                startDrag(createGrid[row][col], row, col, t.clientX, t.clientY, createCanvas);
-            }
+            lastTapEnd = { time: now, row, col };
         }
     });
 }
