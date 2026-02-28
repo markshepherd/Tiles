@@ -177,7 +177,7 @@ body {
 
 .home-footer {
     margin-top: auto;
-    padding-bottom: 1rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
 }
 
 .author {
