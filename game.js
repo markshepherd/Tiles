@@ -991,18 +991,7 @@ function initCreateGridHandlers() {
         }
     });
 
-    createCanvas.addEventListener("touchstart", (e) => {
-        const rect = createCanvas.getBoundingClientRect();
-        const t = e.touches[0];
-        const col = Math.floor((t.clientX - rect.left) / createTileSize);
-        const row = Math.floor((t.clientY - rect.top) / createTileSize);
-        if (row >= 0 && row < GRID && col >= 0 && col < GRID && createGrid[row][col] !== 0) {
-            e.preventDefault();
-            startDrag(createGrid[row][col], row, col, t.clientX, t.clientY, createCanvas);
-        }
-    });
-
-    // Double-click to remove tile
+    // Double-click to remove tile (mouse)
     createCanvas.addEventListener("dblclick", (e) => {
         const rect = createCanvas.getBoundingClientRect();
         const col = Math.floor((e.clientX - rect.left) / createTileSize);
@@ -1011,6 +1000,35 @@ function initCreateGridHandlers() {
             createGrid[row][col] = 0;
             drawCreateGrid();
             updateCreateButton();
+        }
+    });
+
+    // Touch handling: manual double-tap detection + drag
+    let lastTap = { time: 0, row: -1, col: -1 };
+
+    createCanvas.addEventListener("touchstart", (e) => {
+        const rect = createCanvas.getBoundingClientRect();
+        const t = e.touches[0];
+        const col = Math.floor((t.clientX - rect.left) / createTileSize);
+        const row = Math.floor((t.clientY - rect.top) / createTileSize);
+        if (row < 0 || row >= GRID || col < 0 || col >= GRID) return;
+
+        const now = Date.now();
+        if (now - lastTap.time < 300 && row === lastTap.row && col === lastTap.col) {
+            // Double-tap: remove tile
+            e.preventDefault();
+            if (createGrid[row][col] !== 0) {
+                createGrid[row][col] = 0;
+                drawCreateGrid();
+                updateCreateButton();
+            }
+            lastTap = { time: 0, row: -1, col: -1 };
+        } else {
+            lastTap = { time: now, row, col };
+            if (createGrid[row][col] !== 0) {
+                e.preventDefault();
+                startDrag(createGrid[row][col], row, col, t.clientX, t.clientY, createCanvas);
+            }
         }
     });
 }
