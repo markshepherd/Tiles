@@ -39,15 +39,15 @@ var GRID = 4;
 // ── Presets ──
 var PRESETS = [
     {
-        name: "Cloverleaf",
+        name: "Snake",
         grid: [
-            [S,  X,  X, Z],
-            [X,  S,  Z, X],
-            [X,  Z, __, X],
-            [Z,  X,  X, S],
+            [TR,  H,   H,   BL],
+            [BR, H,   H,  TL],
+            [TR, H,   H,  BL],
+            [__, H,   H,   TL],
         ],
-        empty: { row: 2, col: 2 },
-        car: { row: 0, col: 0, entering: "bottom" },
+        empty: { row: 3, col: 0 },
+        car: { row: 0, col: 0, entering: "top" },
     },
     {
         name: "Easy",
@@ -61,26 +61,15 @@ var PRESETS = [
         car: { row: 0, col: 3, entering: "top" },
     },
     {
-        name: "Very Hard",
+        name: "Cloverleaf",
         grid: [
-            [TL,  V,   V,   V],
-            [ H, BR,   S,   V],
-            [ V,  H,  __,   S],
-            [BL, TR,   H,   V],
+            [S,  X,  X, Z],
+            [X,  S,  Z, X],
+            [X,  Z, __, X],
+            [Z,  X,  X, S],
         ],
         empty: { row: 2, col: 2 },
-        car: { row: 0, col: 3, entering: "top" },
-    },
-    {
-        name: "Snake",
-        grid: [
-            [TR,  H,   H,   BL],
-            [BR, H,   H,  TL],
-            [TR, H,   H,  BL],
-            [__, H,   H,   TL],
-        ],
-        empty: { row: 3, col: 0 },
-        car: { row: 0, col: 0, entering: "top" },
+        car: { row: 0, col: 0, entering: "bottom" },
     },
     {
         name: "Circles",
