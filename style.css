@@ -182,7 +182,7 @@ body {
     animation: taglinefadein 0.8s ease-in 3.5s forwards;
 }
 
-.tagline.keyboard-hint {
+.tagline:last-child {
     margin-bottom: 0;
 }
 
