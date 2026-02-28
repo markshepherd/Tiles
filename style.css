@@ -51,7 +51,7 @@ body {
 .title-wrapper {
     position: relative;
     display: inline-block;
-    margin-bottom: 1rem;
+    margin-bottom: 0.3rem;
 }
 
 .title-wrapper::before,
@@ -176,20 +176,24 @@ body {
 }
 
 .home-footer {
-    margin-top: auto;
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    position: fixed;
+    bottom: calc(0.5cm + env(safe-area-inset-bottom));
+    left: 0;
+    right: 0;
+    text-align: center;
 }
 
 .author {
     font-size: 0.7rem;
     color: #556;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
 }
 
 .build-timestamp {
     font-size: 0.7rem;
     color: #445;
 }
+
 
 #level-buttons {
     display: flex;
