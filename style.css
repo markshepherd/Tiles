@@ -257,6 +257,11 @@ body {
     background: #1a4a7a;
 }
 
+#pause-btn.active {
+    background: #e05050;
+    color: #fff;
+}
+
 #fast-btn.active {
     background: #e0a020;
     color: #000;

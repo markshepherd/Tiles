@@ -447,7 +447,7 @@ function startGame() {
     document.getElementById("game-screen").classList.remove("hidden");
     document.getElementById("win-dialog").classList.add("hidden");
     document.getElementById("crash-dialog").classList.add("hidden");
-    document.getElementById("pause-btn").textContent = "Pause";
+    document.getElementById("pause-btn").classList.remove("active");
     document.getElementById("game-title").textContent = currentPreset.name;
     const presetBtns = document.getElementById("preset-buttons");
     if (currentPreset._firebaseKey) {
@@ -513,10 +513,19 @@ function handleCanvasClick(e) {
 
 function handleKeyDown(e) {
     if (!canvas) return;
-    if (e.key === "f" || e.key === "F") {
-        const btn = document.getElementById("fast-btn");
+    if (e.key === "f" || e.key === "F" || e.key === " ") {
+        e.preventDefault();
         fastMode = true;
-        btn.classList.add("active");
+        document.getElementById("fast-btn").classList.add("active");
+        return;
+    }
+    if (e.key === ".") {
+        e.preventDefault();
+        if (carRunning) {
+            elapsedBeforePause += Date.now() - gameStartTime;
+            carRunning = false;
+            document.getElementById("pause-btn").classList.add("active");
+        }
         return;
     }
     let row = emptyPos.row, col = emptyPos.col;
@@ -525,10 +534,6 @@ function handleKeyDown(e) {
         case "ArrowDown":  row -= 1; break;
         case "ArrowLeft":  col += 1; break;
         case "ArrowRight": col -= 1; break;
-        case " ":
-            e.preventDefault();
-            document.getElementById("pause-btn").click();
-            return;
         default: return;
     }
     e.preventDefault();
@@ -536,9 +541,18 @@ function handleKeyDown(e) {
 }
 
 function handleKeyUp(e) {
-    if (e.key === "f" || e.key === "F") {
+    if (e.key === "f" || e.key === "F" || e.key === " ") {
         fastMode = false;
         document.getElementById("fast-btn").classList.remove("active");
+    }
+    if (e.key === ".") {
+        if (!carRunning) {
+            gameStartTime = Date.now();
+            carRunning = true;
+            lastCarTime = 0;
+            animFrameId = requestAnimationFrame(updateCar);
+            document.getElementById("pause-btn").classList.remove("active");
+        }
     }
 }
 
@@ -608,20 +622,32 @@ document.getElementById("retry-tile-btn").addEventListener("click", () => {
     btn.addEventListener("touchcancel",stopFast);
 })();
 
-document.getElementById("pause-btn").addEventListener("click", () => {
+(function() {
     const btn = document.getElementById("pause-btn");
-    if (carRunning) {
-        elapsedBeforePause += Date.now() - gameStartTime;
-        carRunning = false;
-        btn.textContent = "Resume";
-    } else {
-        gameStartTime = Date.now();
-        carRunning = true;
-        lastCarTime = 0;
-        animFrameId = requestAnimationFrame(updateCar);
-        btn.textContent = "Pause";
+    function startPause(e) {
+        e.preventDefault();
+        if (carRunning) {
+            elapsedBeforePause += Date.now() - gameStartTime;
+            carRunning = false;
+            btn.classList.add("active");
+        }
     }
-});
+    function stopPause() {
+        if (!carRunning) {
+            gameStartTime = Date.now();
+            carRunning = true;
+            lastCarTime = 0;
+            animFrameId = requestAnimationFrame(updateCar);
+            btn.classList.remove("active");
+        }
+    }
+    btn.addEventListener("mousedown",  startPause);
+    btn.addEventListener("touchstart", startPause, { passive: false });
+    btn.addEventListener("mouseup",    stopPause);
+    btn.addEventListener("mouseleave", stopPause);
+    btn.addEventListener("touchend",   stopPause);
+    btn.addEventListener("touchcancel",stopPause);
+})();
 
 document.getElementById("game-start-over-btn").addEventListener("click", () => {
     startGame();
