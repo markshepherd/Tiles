@@ -450,13 +450,10 @@ function startGame() {
     document.getElementById("pause-btn").classList.remove("active");
     document.getElementById("game-title").textContent = currentPreset.name;
     const presetBtns = document.getElementById("preset-buttons");
-    const presetSep = document.querySelector(".preset-separator");
     if (currentPreset._firebaseKey) {
         presetBtns.classList.remove("hidden");
-        presetSep.classList.remove("no-show");
     } else {
         presetBtns.classList.add("hidden");
-        presetSep.classList.add("no-show");
     }
     fastMode = false;
     document.getElementById("fast-btn").classList.remove("active");

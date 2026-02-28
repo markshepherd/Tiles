@@ -260,9 +260,6 @@ body {
     display: none;
 }
 
-.btn-separator.no-show {
-    display: none !important;
-}
 
 @media (max-width: 600px) {
     .game-buttons {
