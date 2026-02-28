@@ -253,6 +253,11 @@ body {
     background: #1a4a7a;
 }
 
+#fast-btn.active {
+    background: #e0a020;
+    color: #000;
+}
+
 .preset-buttons {
     display: flex;
     gap: 0.5rem;

@@ -46,9 +46,12 @@ function updateStatus() {
     document.getElementById("game-clock").textContent = mins + ":" + (secs < 10 ? "0" : "") + secs;
 }
 
+let fastMode = false;
+
 function getSecondsPerTile() {
     const val = parseInt(document.getElementById("speed-slider").value);
-    return 0.5 + (10 - val) * 0.5;
+    const base = 0.5 + (10 - val) * 0.5;
+    return fastMode ? base / 5 : base;
 }
 
 // ── Edge midpoints (relative to tile origin) ──
@@ -452,6 +455,8 @@ function startGame() {
     } else {
         presetBtns.classList.add("hidden");
     }
+    fastMode = false;
+    document.getElementById("fast-btn").classList.remove("active");
     gameStartTime = Date.now();
     elapsedBeforePause = 0;
     tilesEntered = 1;
@@ -508,6 +513,12 @@ function handleCanvasClick(e) {
 
 function handleKeyDown(e) {
     if (!canvas) return;
+    if (e.key === "f" || e.key === "F") {
+        const btn = document.getElementById("fast-btn");
+        fastMode = true;
+        btn.classList.add("active");
+        return;
+    }
     let row = emptyPos.row, col = emptyPos.col;
     switch (e.key) {
         case "ArrowUp":    row += 1; break;
@@ -522,6 +533,13 @@ function handleKeyDown(e) {
     }
     e.preventDefault();
     slideTile(row, col);
+}
+
+function handleKeyUp(e) {
+    if (e.key === "f" || e.key === "F") {
+        fastMode = false;
+        document.getElementById("fast-btn").classList.remove("active");
+    }
 }
 
 // ── Win dialog buttons ──
@@ -578,6 +596,18 @@ document.getElementById("retry-tile-btn").addEventListener("click", () => {
 });
 
 // ── Game screen buttons ──
+(function() {
+    const btn = document.getElementById("fast-btn");
+    function startFast(e) { e.preventDefault(); fastMode = true;  btn.classList.add("active"); }
+    function stopFast()            { fastMode = false; btn.classList.remove("active"); }
+    btn.addEventListener("mousedown",  startFast);
+    btn.addEventListener("touchstart", startFast, { passive: false });
+    btn.addEventListener("mouseup",    stopFast);
+    btn.addEventListener("mouseleave", stopFast);
+    btn.addEventListener("touchend",   stopFast);
+    btn.addEventListener("touchcancel",stopFast);
+})();
+
 document.getElementById("pause-btn").addEventListener("click", () => {
     const btn = document.getElementById("pause-btn");
     if (carRunning) {
@@ -1122,6 +1152,7 @@ initCreateGridHandlers();
 
 // ── Event listeners ──
 window.addEventListener("keydown", handleKeyDown);
+window.addEventListener("keyup", handleKeyUp);
 
 window.addEventListener("resize", () => {
     if (canvas) {
