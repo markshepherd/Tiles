@@ -31,9 +31,10 @@ body {
 
 #home-screen {
     text-align: center;
-    padding: 0 1rem;
-    min-height: 100%;
+    padding: 1rem 1rem 3rem;
     width: 100%;
+    position: fixed;
+    inset: 0;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -46,7 +47,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding-bottom: 2.5rem;
+    min-height: min-content;
 }
 
 .title-wrapper {
