@@ -24,7 +24,7 @@
         </div>
         <div class="home-footer">
             <p class="author">by Mark Shepherd</p>
-            <p class="build-timestamp">Build: 2026-02-27 17:40</p>
+            <p class="build-timestamp">Build: 2026-02-27 22:15</p>
         </div>
     </div>
 
@@ -51,6 +51,8 @@
                 <button id="pause-btn">Pause</button>
                 <button id="game-start-over-btn">Replay</button>
                 <button id="game-home-btn">Home</button>
+                <button id="edit-preset-btn" class="hidden">Edit Preset</button>
+                <button id="remove-preset-btn" class="hidden">Remove Preset</button>
             </div>
         </div>
     </div>
@@ -74,7 +76,27 @@
         </div>
     </div>
 
+    <div id="create-screen" class="hidden">
+        <div class="create-content">
+            <h2>Create Preset</h2>
+            <div class="create-field">
+                <label for="preset-name-input">Preset Name</label>
+                <input type="text" id="preset-name-input" placeholder="Enter preset name">
+            </div>
+            <div id="create-palette"></div>
+            <canvas id="create-grid-canvas"></canvas>
+            <div id="create-tile-count"><span id="create-tile-count-num">0</span> / 15</div>
+            <div class="create-buttons">
+                <button id="create-done-btn" disabled>Add</button>
+                <button id="create-cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="logic.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

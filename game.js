@@ -446,6 +446,15 @@ function startGame() {
     document.getElementById("crash-dialog").classList.add("hidden");
     document.getElementById("pause-btn").textContent = "Pause";
     document.getElementById("game-title").textContent = currentPreset.name;
+    const removeBtn = document.getElementById("remove-preset-btn");
+    const editBtn = document.getElementById("edit-preset-btn");
+    if (currentPreset._firebaseKey) {
+        removeBtn.classList.remove("hidden");
+        editBtn.classList.remove("hidden");
+    } else {
+        removeBtn.classList.add("hidden");
+        editBtn.classList.add("hidden");
+    }
     gameStartTime = Date.now();
     elapsedBeforePause = 0;
     tilesEntered = 1;
@@ -601,18 +610,518 @@ document.getElementById("game-home-btn").addEventListener("click", () => {
     skipCarAnimation();
 });
 
-// ── Build level buttons ──
-const levelContainer = document.getElementById("level-buttons");
-PRESETS.forEach((preset, i) => {
-    const btn = document.createElement("button");
-    btn.textContent = preset.name;
-    btn.className = "level-btn";
-    btn.addEventListener("click", () => {
-        currentPreset = PRESETS[i];
-        startGame();
+document.getElementById("remove-preset-btn").addEventListener("click", () => {
+    if (!currentPreset._firebaseKey) return;
+    // Remove from Firebase
+    db.ref("presets/" + currentPreset._firebaseKey).remove().catch(function(err) {
+        console.warn("Could not remove preset from Firebase:", err);
     });
-    levelContainer.appendChild(btn);
+    // Remove from local array
+    const idx = PRESETS.indexOf(currentPreset);
+    if (idx !== -1) PRESETS.splice(idx, 1);
+    // Go home
+    carRunning = false;
+    car = null;
+    buildLevelButtons();
+    document.getElementById("game-screen").classList.add("hidden");
+    document.getElementById("win-dialog").classList.add("hidden");
+    document.getElementById("crash-dialog").classList.add("hidden");
+    document.getElementById("home-screen").classList.remove("hidden");
+    skipCarAnimation();
 });
+
+document.getElementById("edit-preset-btn").addEventListener("click", () => {
+    carRunning = false;
+    car = null;
+    openCreateScreen(currentPreset);
+});
+
+// ── Build level buttons ──
+function buildLevelButtons() {
+    const levelContainer = document.getElementById("level-buttons");
+    levelContainer.innerHTML = "";
+    PRESETS.forEach((preset, i) => {
+        const btn = document.createElement("button");
+        btn.textContent = preset.name;
+        btn.className = "level-btn";
+        btn.addEventListener("click", () => {
+            currentPreset = PRESETS[i];
+            startGame();
+        });
+        levelContainer.appendChild(btn);
+    });
+
+    const createBtn = document.createElement("button");
+    createBtn.textContent = "Create\u2026";
+    createBtn.className = "level-btn";
+    createBtn.addEventListener("click", () => {
+        openCreateScreen();
+    });
+    levelContainer.appendChild(createBtn);
+}
+buildLevelButtons();
+
+// ── Load cloud presets from Firebase ──
+db.ref("presets").once("value").then(function(snapshot) {
+    snapshot.forEach(function(child) {
+        var preset = child.val();
+        preset._firebaseKey = child.key;
+        PRESETS.push(preset);
+    });
+    buildLevelButtons();
+}).catch(function(err) {
+    console.warn("Could not load cloud presets:", err);
+});
+
+// ── Create screen ──
+
+// Tile type labels for the palette, in display order
+const PALETTE_TYPES = [
+    { id: H,  label: "H" },
+    { id: V,  label: "V" },
+    { id: TL, label: "TL" },
+    { id: TR, label: "TR" },
+    { id: BR, label: "BR" },
+    { id: BL, label: "BL" },
+    { id: X,  label: "X" },
+    { id: S,  label: "S" },
+    { id: Z,  label: "Z" },
+];
+
+let createGrid = []; // 4x4 array of tile type ids (0 = empty)
+let createTileSize = 0;
+let createCanvas, createCtx;
+let createDrag = null; // { type, sourceRow, sourceCol, ghostEl }
+let editingPreset = null; // non-null when editing an existing preset
+
+function resetCreateGrid() {
+    createGrid = [];
+    for (let r = 0; r < GRID; r++) {
+        createGrid[r] = [];
+        for (let c = 0; c < GRID; c++) {
+            createGrid[r][c] = 0;
+        }
+    }
+}
+
+function getCreateTileCount() {
+    let count = 0;
+    for (let r = 0; r < GRID; r++)
+        for (let c = 0; c < GRID; c++)
+            if (createGrid[r][c] !== 0) count++;
+    return count;
+}
+
+function updateCreateButton() {
+    const name = document.getElementById("preset-name-input").value.trim();
+    const duplicate = name && PRESETS.some(p =>
+        p.name.toLowerCase() === name.toLowerCase() && p !== editingPreset
+    );
+    const count = getCreateTileCount();
+    document.getElementById("create-done-btn").disabled = !name || duplicate || count !== 15;
+    document.getElementById("create-tile-count-num").textContent = count;
+}
+
+function sizeCreateCanvas() {
+    const maxDim = Math.min(window.innerWidth - 40, 320);
+    createTileSize = Math.floor(maxDim / GRID);
+    createCanvas.width = createTileSize * GRID;
+    createCanvas.height = createTileSize * GRID;
+}
+
+function drawCreateGrid() {
+    const savedTileSize = tileSize;
+    tileSize = createTileSize;
+
+    createCtx.clearRect(0, 0, createCanvas.width, createCanvas.height);
+
+    for (let r = 0; r < GRID; r++) {
+        for (let c = 0; c < GRID; c++) {
+            const ox = c * createTileSize;
+            const oy = r * createTileSize;
+
+            if (createGrid[r][c] === 0) {
+                // Empty slot
+                createCtx.fillStyle = "#060610";
+                createCtx.fillRect(ox, oy, createTileSize, createTileSize);
+                createCtx.strokeStyle = "rgba(255,255,255,0.08)";
+                createCtx.lineWidth = 1;
+                createCtx.strokeRect(ox + 0.5, oy + 0.5, createTileSize - 1, createTileSize - 1);
+            } else {
+                // Draw tile using the same style as game tiles
+                const tileType = createGrid[r][c];
+                const cx = ox + createTileSize / 2;
+                const cy = oy + createTileSize / 2;
+
+                const grad = createCtx.createRadialGradient(cx, cy, 0, cx, cy, createTileSize * 0.7);
+                grad.addColorStop(0, "#3a6ab0");
+                grad.addColorStop(1, "#1a3060");
+                createCtx.fillStyle = grad;
+                createCtx.fillRect(ox, oy, createTileSize, createTileSize);
+
+                // 3D edges
+                createCtx.strokeStyle = "rgba(255,255,255,0.15)";
+                createCtx.lineWidth = 1;
+                createCtx.beginPath();
+                createCtx.moveTo(ox + 0.5, oy + createTileSize - 0.5);
+                createCtx.lineTo(ox + 0.5, oy + 0.5);
+                createCtx.lineTo(ox + createTileSize - 0.5, oy + 0.5);
+                createCtx.stroke();
+
+                createCtx.strokeStyle = "rgba(0,0,0,0.3)";
+                createCtx.beginPath();
+                createCtx.moveTo(ox + createTileSize - 0.5, oy + 0.5);
+                createCtx.lineTo(ox + createTileSize - 0.5, oy + createTileSize - 0.5);
+                createCtx.lineTo(ox + 0.5, oy + createTileSize - 0.5);
+                createCtx.stroke();
+
+                // Roads
+                const tileDef = TILE_TYPES[tileType];
+                for (const [a, b] of tileDef.connections) {
+                    drawRoadSegment(createCtx, ox, oy, a, b);
+                }
+            }
+        }
+    }
+
+    tileSize = savedTileSize;
+}
+
+function initPalette() {
+    const container = document.getElementById("create-palette");
+    container.innerHTML = "";
+    const paletteTileSize = 40;
+
+    PALETTE_TYPES.forEach(({ id }) => {
+        const c = document.createElement("canvas");
+        c.className = "palette-tile";
+        c.width = paletteTileSize;
+        c.height = paletteTileSize;
+        c.dataset.tileType = id;
+
+        // Draw tile on small canvas
+        const savedTileSize = tileSize;
+        tileSize = paletteTileSize;
+        const pCtx = c.getContext("2d");
+
+        const grad = pCtx.createRadialGradient(paletteTileSize / 2, paletteTileSize / 2, 0,
+            paletteTileSize / 2, paletteTileSize / 2, paletteTileSize * 0.7);
+        grad.addColorStop(0, "#3a6ab0");
+        grad.addColorStop(1, "#1a3060");
+        pCtx.fillStyle = grad;
+        pCtx.fillRect(0, 0, paletteTileSize, paletteTileSize);
+
+        const tileDef = TILE_TYPES[id];
+        for (const [a, b] of tileDef.connections) {
+            drawRoadSegment(pCtx, 0, 0, a, b);
+        }
+
+        tileSize = savedTileSize;
+
+        // Drag start (mouse)
+        c.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            startDrag(id, -1, -1, e.clientX, e.clientY, c);
+        });
+
+        // Drag start (touch)
+        c.addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            const t = e.touches[0];
+            startDrag(id, -1, -1, t.clientX, t.clientY, c);
+        });
+
+        container.appendChild(c);
+    });
+}
+
+function startDrag(tileType, sourceRow, sourceCol, clientX, clientY, sourceEl) {
+    // Create ghost element
+    const ghost = document.createElement("canvas");
+    ghost.id = "create-drag-ghost";
+    const ghostSize = createTileSize;
+    ghost.width = ghostSize;
+    ghost.height = ghostSize;
+
+    const savedTileSize = tileSize;
+    tileSize = ghostSize;
+    const gCtx = ghost.getContext("2d");
+
+    const grad = gCtx.createRadialGradient(ghostSize / 2, ghostSize / 2, 0,
+        ghostSize / 2, ghostSize / 2, ghostSize * 0.7);
+    grad.addColorStop(0, "#3a6ab0");
+    grad.addColorStop(1, "#1a3060");
+    gCtx.fillStyle = grad;
+    gCtx.fillRect(0, 0, ghostSize, ghostSize);
+
+    const tileDef = TILE_TYPES[tileType];
+    for (const [a, b] of tileDef.connections) {
+        drawRoadSegment(gCtx, 0, 0, a, b);
+    }
+    tileSize = savedTileSize;
+
+    ghost.style.left = (clientX - ghostSize / 2) + "px";
+    ghost.style.top = (clientY - ghostSize / 2) + "px";
+    document.body.appendChild(ghost);
+
+    // If dragging from grid, remove from source
+    if (sourceRow >= 0) {
+        createGrid[sourceRow][sourceCol] = 0;
+        drawCreateGrid();
+        updateCreateButton();
+    }
+
+    createDrag = { type: tileType, sourceRow, sourceCol, ghostEl: ghost };
+}
+
+function moveGhost(clientX, clientY) {
+    if (!createDrag) return;
+    const ghost = createDrag.ghostEl;
+    const size = createTileSize;
+    ghost.style.left = (clientX - size / 2) + "px";
+    ghost.style.top = (clientY - size / 2) + "px";
+}
+
+function endDrag(clientX, clientY) {
+    if (!createDrag) return;
+
+    const rect = createCanvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    const col = Math.floor(x / createTileSize);
+    const row = Math.floor(y / createTileSize);
+
+    if (row >= 0 && row < GRID && col >= 0 && col < GRID && createGrid[row][col] === 0) {
+        createGrid[row][col] = createDrag.type;
+    } else if (createDrag.sourceRow >= 0) {
+        // Return to source if drop was invalid
+        createGrid[createDrag.sourceRow][createDrag.sourceCol] = createDrag.type;
+    }
+
+    createDrag.ghostEl.remove();
+    createDrag = null;
+    drawCreateGrid();
+    updateCreateButton();
+}
+
+function cancelDrag() {
+    if (!createDrag) return;
+    // Return tile to source if it came from grid
+    if (createDrag.sourceRow >= 0) {
+        createGrid[createDrag.sourceRow][createDrag.sourceCol] = createDrag.type;
+    }
+    createDrag.ghostEl.remove();
+    createDrag = null;
+    drawCreateGrid();
+    updateCreateButton();
+}
+
+// Global mouse/touch move and up handlers for drag
+document.addEventListener("mousemove", (e) => {
+    if (createDrag) {
+        e.preventDefault();
+        moveGhost(e.clientX, e.clientY);
+    }
+});
+
+document.addEventListener("mouseup", (e) => {
+    if (createDrag) {
+        endDrag(e.clientX, e.clientY);
+    }
+});
+
+document.addEventListener("touchmove", (e) => {
+    if (createDrag) {
+        e.preventDefault();
+        const t = e.touches[0];
+        moveGhost(t.clientX, t.clientY);
+    }
+}, { passive: false });
+
+document.addEventListener("touchend", (e) => {
+    if (createDrag) {
+        const t = e.changedTouches[0];
+        endDrag(t.clientX, t.clientY);
+    }
+});
+
+document.addEventListener("touchcancel", () => {
+    if (createDrag) cancelDrag();
+});
+
+// Grid canvas: mousedown to start drag from grid cell
+function initCreateGridHandlers() {
+    createCanvas = document.getElementById("create-grid-canvas");
+    createCtx = createCanvas.getContext("2d");
+
+    createCanvas.addEventListener("mousedown", (e) => {
+        const rect = createCanvas.getBoundingClientRect();
+        const col = Math.floor((e.clientX - rect.left) / createTileSize);
+        const row = Math.floor((e.clientY - rect.top) / createTileSize);
+        if (row >= 0 && row < GRID && col >= 0 && col < GRID && createGrid[row][col] !== 0) {
+            e.preventDefault();
+            startDrag(createGrid[row][col], row, col, e.clientX, e.clientY, createCanvas);
+        }
+    });
+
+    createCanvas.addEventListener("touchstart", (e) => {
+        const rect = createCanvas.getBoundingClientRect();
+        const t = e.touches[0];
+        const col = Math.floor((t.clientX - rect.left) / createTileSize);
+        const row = Math.floor((t.clientY - rect.top) / createTileSize);
+        if (row >= 0 && row < GRID && col >= 0 && col < GRID && createGrid[row][col] !== 0) {
+            e.preventDefault();
+            startDrag(createGrid[row][col], row, col, t.clientX, t.clientY, createCanvas);
+        }
+    });
+
+    // Double-click to remove tile
+    createCanvas.addEventListener("dblclick", (e) => {
+        const rect = createCanvas.getBoundingClientRect();
+        const col = Math.floor((e.clientX - rect.left) / createTileSize);
+        const row = Math.floor((e.clientY - rect.top) / createTileSize);
+        if (row >= 0 && row < GRID && col >= 0 && col < GRID && createGrid[row][col] !== 0) {
+            createGrid[row][col] = 0;
+            drawCreateGrid();
+            updateCreateButton();
+        }
+    });
+}
+
+function openCreateScreen(preset) {
+    document.getElementById("home-screen").classList.add("hidden");
+    document.getElementById("game-screen").classList.add("hidden");
+    document.getElementById("win-dialog").classList.add("hidden");
+    document.getElementById("crash-dialog").classList.add("hidden");
+
+    editingPreset = preset || null;
+
+    if (preset) {
+        document.getElementById("preset-name-input").value = preset.name;
+        // Populate grid from preset
+        for (let r = 0; r < GRID; r++) {
+            createGrid[r] = [];
+            for (let c = 0; c < GRID; c++) {
+                createGrid[r][c] = preset.grid[r][c];
+            }
+        }
+        document.getElementById("create-done-btn").textContent = "Save";
+    } else {
+        document.getElementById("preset-name-input").value = "";
+        resetCreateGrid();
+        document.getElementById("create-done-btn").textContent = "Add";
+    }
+
+    createCanvas = document.getElementById("create-grid-canvas");
+    createCtx = createCanvas.getContext("2d");
+    sizeCreateCanvas();
+    initPalette();
+    drawCreateGrid();
+    updateCreateButton();
+
+    document.getElementById("create-screen").classList.remove("hidden");
+    document.getElementById("preset-name-input").focus();
+}
+
+document.getElementById("preset-name-input").addEventListener("input", () => {
+    updateCreateButton();
+});
+
+document.getElementById("create-cancel-btn").addEventListener("click", () => {
+    document.getElementById("create-screen").classList.add("hidden");
+    if (editingPreset) {
+        document.getElementById("game-screen").classList.remove("hidden");
+    } else {
+        document.getElementById("home-screen").classList.remove("hidden");
+    }
+    editingPreset = null;
+});
+
+document.getElementById("create-done-btn").addEventListener("click", () => {
+    const name = document.getElementById("preset-name-input").value.trim();
+    if (!name) return;
+    if (getCreateTileCount() !== 15) return;
+
+    // Find the empty cell
+    let emptyRow = -1, emptyCol = -1;
+    for (let r = 0; r < GRID; r++) {
+        for (let c = 0; c < GRID; c++) {
+            if (createGrid[r][c] === 0) {
+                emptyRow = r;
+                emptyCol = c;
+            }
+        }
+    }
+
+    // Build grid array
+    const grid = [];
+    for (let r = 0; r < GRID; r++) {
+        grid[r] = [];
+        for (let c = 0; c < GRID; c++) {
+            grid[r][c] = createGrid[r][c];
+        }
+    }
+
+    // Determine car entering edge: first of top/left/bottom/right that is
+    // a connection edge of the tile at [0][0]
+    const startTile = createGrid[0][0];
+    let entering = "top"; // default fallback
+    if (startTile !== 0) {
+        const tileDef = TILE_TYPES[startTile];
+        const candidates = ["top", "left", "bottom", "right"];
+        for (const edge of candidates) {
+            let found = false;
+            for (const [a, b] of tileDef.connections) {
+                if (a === edge || b === edge) { found = true; break; }
+            }
+            if (found) { entering = edge; break; }
+        }
+    }
+
+    if (editingPreset) {
+        // Update existing preset in place
+        editingPreset.name = name;
+        editingPreset.grid = grid;
+        editingPreset.empty = { row: emptyRow, col: emptyCol };
+        editingPreset.car = { row: 0, col: 0, entering: entering };
+
+        // Update in Firebase
+        if (editingPreset._firebaseKey) {
+            const saveData = { name: name, grid: grid, empty: { row: emptyRow, col: emptyCol }, car: { row: 0, col: 0, entering: entering } };
+            db.ref("presets/" + editingPreset._firebaseKey).set(saveData).catch(function(err) {
+                console.warn("Could not update preset in Firebase:", err);
+            });
+        }
+
+        currentPreset = editingPreset;
+        editingPreset = null;
+        buildLevelButtons();
+        document.getElementById("create-screen").classList.add("hidden");
+        startGame();
+    } else {
+        const preset = {
+            name: name,
+            grid: grid,
+            empty: { row: emptyRow, col: emptyCol },
+            car: { row: 0, col: 0, entering: entering },
+        };
+
+        PRESETS.push(preset);
+
+        // Save to Firebase
+        var ref = db.ref("presets").push(preset);
+        preset._firebaseKey = ref.key;
+        ref.catch(function(err) {
+            console.warn("Could not save preset to Firebase:", err);
+        });
+
+        buildLevelButtons();
+        document.getElementById("create-screen").classList.add("hidden");
+        document.getElementById("home-screen").classList.remove("hidden");
+    }
+});
+
+initCreateGridHandlers();
 
 // ── Event listeners ──
 window.addEventListener("keydown", handleKeyDown);

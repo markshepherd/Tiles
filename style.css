@@ -404,3 +404,123 @@ body {
 .dialog-content button:hover {
     background: #1a4a7a;
 }
+
+/* ── Create Preset screen ── */
+#create-screen {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, #1a2a4a, #101828 60%, #0a0e1a);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+}
+
+.create-content {
+    text-align: center;
+    padding: 2rem;
+}
+
+.create-content h2 {
+    font-family: Impact, 'Arial Black', sans-serif;
+    font-size: 2rem;
+    color: #5aa0e0;
+    margin-bottom: 1rem;
+}
+
+.create-field {
+    margin-bottom: 1rem;
+}
+
+.create-field label {
+    display: block;
+    font-size: 1rem;
+    color: #88aac8;
+    margin-bottom: 0.5rem;
+}
+
+.create-field input {
+    font-size: 1.1rem;
+    padding: 0.6rem 1rem;
+    border: 2px solid #4a7a9a;
+    border-radius: 6px;
+    background: #0a0e1a;
+    color: #eee;
+    outline: none;
+    width: 16rem;
+}
+
+.create-field input:focus {
+    border-color: #5aa0e0;
+}
+
+.create-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.create-buttons button {
+    padding: 0.6rem 2rem;
+    font-size: 1rem;
+    background: #4a7a9a;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.create-buttons button:hover {
+    background: #3a6a88;
+}
+
+.create-buttons button:disabled {
+    background: #2a3a4a;
+    color: #556;
+    cursor: not-allowed;
+}
+
+/* ── Create Preset: palette ── */
+#create-palette {
+    display: flex;
+    gap: 0.4rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.palette-tile {
+    border: 2px solid #4a7a9a;
+    border-radius: 4px;
+    cursor: grab;
+    touch-action: none;
+}
+
+.palette-tile:active {
+    cursor: grabbing;
+}
+
+/* ── Create Preset: grid canvas ── */
+#create-grid-canvas {
+    border-radius: 4px;
+    display: block;
+    margin: 0 auto 0.8rem;
+    touch-action: none;
+}
+
+/* ── Create Preset: tile counter ── */
+#create-tile-count {
+    font-size: 1.1rem;
+    color: #88aac8;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+/* ── Create Preset: drag ghost ── */
+#create-drag-ghost {
+    position: fixed;
+    pointer-events: none;
+    opacity: 0.8;
+    z-index: 1000;
+    border-radius: 4px;
+}
