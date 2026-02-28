@@ -521,10 +521,18 @@ function handleKeyDown(e) {
     }
     if (e.key === ".") {
         e.preventDefault();
+        if (e.repeat) return;
+        const btn = document.getElementById("pause-btn");
         if (carRunning) {
             elapsedBeforePause += Date.now() - gameStartTime;
             carRunning = false;
-            document.getElementById("pause-btn").classList.add("active");
+            btn.classList.add("active");
+        } else {
+            gameStartTime = Date.now();
+            carRunning = true;
+            lastCarTime = 0;
+            animFrameId = requestAnimationFrame(updateCar);
+            btn.classList.remove("active");
         }
         return;
     }
@@ -544,15 +552,6 @@ function handleKeyUp(e) {
     if (e.key === "f" || e.key === "F" || e.key === " ") {
         fastMode = false;
         document.getElementById("fast-btn").classList.remove("active");
-    }
-    if (e.key === ".") {
-        if (!carRunning) {
-            gameStartTime = Date.now();
-            carRunning = true;
-            lastCarTime = 0;
-            animFrameId = requestAnimationFrame(updateCar);
-            document.getElementById("pause-btn").classList.remove("active");
-        }
     }
 }
 
@@ -624,16 +623,13 @@ document.getElementById("retry-tile-btn").addEventListener("click", () => {
 
 (function() {
     const btn = document.getElementById("pause-btn");
-    function startPause(e) {
+    function togglePause(e) {
         e.preventDefault();
         if (carRunning) {
             elapsedBeforePause += Date.now() - gameStartTime;
             carRunning = false;
             btn.classList.add("active");
-        }
-    }
-    function stopPause() {
-        if (!carRunning) {
+        } else {
             gameStartTime = Date.now();
             carRunning = true;
             lastCarTime = 0;
@@ -641,12 +637,8 @@ document.getElementById("retry-tile-btn").addEventListener("click", () => {
             btn.classList.remove("active");
         }
     }
-    btn.addEventListener("mousedown",  startPause);
-    btn.addEventListener("touchstart", startPause, { passive: false });
-    btn.addEventListener("mouseup",    stopPause);
-    btn.addEventListener("mouseleave", stopPause);
-    btn.addEventListener("touchend",   stopPause);
-    btn.addEventListener("touchcancel",stopPause);
+    btn.addEventListener("click", togglePause);
+    btn.addEventListener("touchend", (e) => { e.preventDefault(); togglePause(e); });
 })();
 
 document.getElementById("game-start-over-btn").addEventListener("click", () => {
