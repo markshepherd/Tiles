@@ -306,11 +306,18 @@ body {
     display: flex;
     gap: 0.5rem;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 @media (max-width: 600px) {
     .preset-buttons {
         flex-basis: 100%;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .preset-buttons .btn-separator {
+        width: 60%;
     }
 }
 
