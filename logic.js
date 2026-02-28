@@ -39,26 +39,15 @@ var GRID = 4;
 // ── Presets ──
 var PRESETS = [
     {
-        name: "Snake",
+        name: "Circles",
         grid: [
-            [TR,  H,   H,   BL],
-            [BR, H,   H,  TL],
-            [TR, H,   H,  BL],
-            [__, H,   H,   TL],
+            [BR, BL,  BR,  BL],
+            [TR, TL,  TR,  TL],
+            [BR, BL,  BR,  BL],
+            [TR, TL,  TR,  __],
         ],
-        empty: { row: 3, col: 0 },
-        car: { row: 0, col: 0, entering: "top" },
-    },
-    {
-        name: "Easy",
-        grid: [
-            [BR,  H, BL,  V],
-            [ V, BL,  V,  V],
-            [ V, __,  TR, TL],
-            [TR,  H,  H, TL],
-        ],
-        empty: { row: 2, col: 1 },
-        car: { row: 0, col: 3, entering: "top" },
+        empty: { row: 3, col: 3 },
+        car: { row: 0, col: 0, entering: "bottom" },
     },
     {
         name: "Cloverleaf",
@@ -72,15 +61,26 @@ var PRESETS = [
         car: { row: 0, col: 0, entering: "bottom" },
     },
     {
-        name: "Circles",
+        name: "Easy",
         grid: [
-            [BR, BL,  BR,  BL],
-            [TR, TL,  TR,  TL],
-            [BR, BL,  BR,  BL],
-            [TR, TL,  TR,  __],
+            [BR,  H, BL,  V],
+            [ V, BL,  V,  V],
+            [ V, __,  TR, TL],
+            [TR,  H,  H, TL],
         ],
-        empty: { row: 3, col: 3 },
-        car: { row: 0, col: 0, entering: "bottom" },
+        empty: { row: 2, col: 1 },
+        car: { row: 0, col: 3, entering: "top" },
+    },
+    {
+        name: "Snake",
+        grid: [
+            [TR,  H,   H,   BL],
+            [BR, H,   H,  TL],
+            [TR, H,   H,  BL],
+            [__, H,   H,   TL],
+        ],
+        empty: { row: 3, col: 0 },
+        car: { row: 0, col: 0, entering: "top" },
     },
 ];
 

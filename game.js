@@ -685,12 +685,13 @@ document.getElementById("edit-preset-btn").addEventListener("click", () => {
 function buildLevelButtons() {
     const levelContainer = document.getElementById("level-buttons");
     levelContainer.innerHTML = "";
-    PRESETS.forEach((preset, i) => {
+    const sorted = PRESETS.slice().sort((a, b) => a.name.localeCompare(b.name));
+    sorted.forEach((preset) => {
         const btn = document.createElement("button");
         btn.textContent = preset.name;
         btn.className = "level-btn";
         btn.addEventListener("click", () => {
-            currentPreset = PRESETS[i];
+            currentPreset = preset;
             startGame();
         });
         levelContainer.appendChild(btn);
