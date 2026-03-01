@@ -43,9 +43,9 @@ body {
 
 .home-content {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    justify-items: center;
     min-height: min-content;
     padding: 0.5rem 0;
 }
@@ -111,8 +111,7 @@ body {
     align-items: center;
     width: 100%;
     min-height: 3rem;
-    margin-top: auto;
-    margin-bottom: auto;
+    align-self: center;
     padding: 0.5rem 0;
 }
 
